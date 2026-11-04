@@ -96,11 +96,10 @@ recipients and a verified sender will be configured during the email phase.
 
 | Path | Contents |
 | --- | --- |
-| `Frontend/src/app/` | React Router entry; future providers |
+| `Frontend/src/app/` | React Router entry |
 | `Frontend/src/components/ui/` | Avatar, StatCard, StatusChip |
-| `Frontend/src/features/` | Future feature-local hooks, queries and forms |
 | `Frontend/src/lib/` | Browser Supabase client; clinic/timezone constants |
-| `Frontend/src/pages/` | Theme specimen; future route pages |
+| `Frontend/src/pages/` | Application route pages |
 | `Frontend/src/styles/` | Tailwind layers, shared styles and print defaults |
 | `Frontend/public/images/` | Generated Luna portrait; other pets fall back to initials |
 | `Backend/supabase/migrations/` | Schema and security/care-rule migrations |
@@ -108,7 +107,6 @@ recipients and a verified sender will be configured during the email phase.
 | `Backend/supabase/tests/` | Five SQL verification scripts |
 | `Backend/supabase/functions/` | Deno reminder function and cron setup |
 | `Backend/scripts/` | Embedded PostgreSQL runner and test-only Auth fixture |
-| `docs/` | Phase handoff notes and verification details |
 
 ## Database and RLS
 
