@@ -82,10 +82,10 @@ export function AppShell() {
           ))}
         </nav>
         <div className="mt-auto">
-          <div className="relative mt-4 flex items-center gap-2 border-t border-border pt-4">
-            <Avatar name={initials} className="h-8 w-8 text-xs" />
-            <div className="min-w-0"><p className="truncate text-xs font-medium">{initials}</p><p className="text-[10px] text-text-muted">{profile?.role ?? 'Clinic manager'}</p></div>
-            <button type="button" aria-label="Account menu" onClick={() => setMenuOpen(!menuOpen)} className="ml-auto text-text-muted"><ChevronDown size={14} /></button>
+          <div className="relative mt-4 flex items-center gap-3 rounded-2xl border border-border bg-surface-inner/70 px-3 py-3">
+            <Avatar name={initials} className="h-11 w-11 text-sm" />
+            <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{initials}</p><p className="text-xs capitalize text-text-muted">{profile?.role ?? 'Clinic manager'}</p></div>
+            <button type="button" aria-label="Account menu" onClick={() => setMenuOpen(!menuOpen)} className="text-text-muted hover:text-primary"><ChevronDown size={16} /></button>
             {menuOpen && <button type="button" onClick={() => void logout()} className="absolute bottom-10 right-0 z-10 flex items-center gap-2 rounded-xl border border-border bg-surface-inner px-3 py-2 text-xs text-text-primary shadow-sm"><LogOut size={14} /> Log out</button>}
           </div>
           {logoutError && <p role="alert" className="mt-2 text-xs text-primary-hover">{logoutError}</p>}
