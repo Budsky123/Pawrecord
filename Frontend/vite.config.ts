@@ -5,4 +5,7 @@ export default defineConfig({
   root: 'Frontend',
   envDir: '..',
   plugins: [react()],
+  build: {
+    outDir: '../dist',
+  },
 });
