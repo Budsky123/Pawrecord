@@ -95,7 +95,7 @@ export function AppShell() {
         <header className="flex h-16 items-center gap-4 border-b border-border bg-surface-inner px-5">
           <div className="relative max-w-md flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={15} /><input className="field h-9 min-h-0 pl-9" placeholder="Search pets, owners, or records..." aria-label="Search pets, owners, or records" value={search} onChange={(event) => { const value = event.target.value; setSearch(value); if (value.trim().length < 2) setSearchResults([]); }} />{search.trim().length >= 2 && <div className="absolute left-0 right-0 top-11 z-20 overflow-hidden rounded-xl border border-border bg-surface-inner shadow-sm">{searchResults.length === 0 ? <p className="p-3 text-xs text-text-muted">No matching records.</p> : searchResults.map((result) => <Link key={`${result.to}-${result.label}`} to={result.to} onClick={() => setSearch('')} className="block border-b border-border px-3 py-2 last:border-0 hover:bg-status-rose"><p className="text-sm font-medium">{result.label}</p><p className="text-xs text-text-muted">{result.detail}</p></Link>)}</div>}</div>
           <button type="button" aria-label="View vaccination reminders" onClick={() => navigate('/vaccinations')} className="text-text-muted hover:text-primary"><Bell size={17} /></button>
-          <div className="hidden items-center gap-2 border-l border-border pl-4 text-xs sm:flex">{clinic.name}<ChevronDown size={13} /></div>
+          <div className="hidden border-l border-border pl-5 text-xs font-medium tracking-wide text-text-primary sm:block">{clinic.name}</div>
         </header>
         <main className="p-5 sm:p-8"><Outlet /></main>
       </div>

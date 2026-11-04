@@ -52,7 +52,7 @@ export function OwnerPortalPage() {
       <section className="panel flex flex-wrap items-center gap-5 p-6">
         <Avatar name={primaryPet.name} src={primaryPet.photo_url} className="h-24 w-24 text-2xl" />
         <div className="min-w-0 flex-1"><p className="text-sm text-text-muted">{primaryPet.species} · {primaryPet.breed ?? 'Mixed breed'}</p><h2 className="font-heading text-2xl">{primaryPet.name}</h2><p className="mt-1 text-xs text-text-muted">{primaryPet.birth_date ? `Born ${primaryPet.birth_date}` : 'Birth date not recorded'}</p><StatusChip label={primaryPet.health_status.replace('_', ' ')} tone="neutral" /></div>
-        <Link to="/appointments" className="button-primary"><CalendarPlus size={16} /> Book a visit</Link>
+        <Link to="/appointments?book=1" className="button-primary"><CalendarPlus size={16} /> Book a visit</Link>
       </section>
       {pets.length > 1 && <section><div className="mb-3 flex items-center justify-between"><h2 className="font-heading text-lg">My pets</h2><Link className="text-xs text-primary" to="/medical-records">View care records →</Link></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{pets.map((pet) => <article key={pet.id} className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4"><Avatar name={pet.name} src={pet.photo_url} className="h-12 w-12" /><div><p className="text-sm font-medium">{pet.name}</p><p className="text-xs text-text-muted">{pet.species} · {pet.breed ?? 'Mixed breed'}</p><p className="mt-1 text-xs text-text-muted">{pet.health_status.replace('_', ' ')}</p></div></article>)}</div></section>}
       <section className="grid gap-5 lg:grid-cols-2">
