@@ -1,5 +1,5 @@
 import { Bell, CalendarDays, ChevronDown, Grid2X2, LogOut, PawPrint, Search, Settings, ShieldCheck, Stethoscope, Syringe, Users } from 'lucide-react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../auth/AuthProvider';
@@ -23,6 +23,8 @@ export function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [logoutError, setLogoutError] = useState<string | null>(null);
   const [dueCount, setDueCount] = useState<number | null>(supabase ? null : 0);
+  const [search, setSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<Array<{ label: string; detail: string; to: string }>>([]);
   const initials = profile?.full_name ?? 'Clinic manager';
   const visibleNavItems = navItems.filter(({ label }) => profile?.role === 'owner'
     ? ['Overview', 'Owner portal', 'Appointments', 'Medical records', 'Vaccinations'].includes(label)
@@ -33,6 +35,26 @@ export function AppShell() {
       setDueCount(count ?? 0);
     });
   }, []);
+
+  useEffect(() => {
+    const term = search.trim();
+    if (!supabase || term.length < 2) return;
+    let active = true;
+    const pattern = `%${term}%`;
+    void Promise.all([
+      supabase.from('pets').select('id, name, species').ilike('name', pattern).limit(5),
+      supabase.from('owners').select('id, full_name').ilike('full_name', pattern).limit(5),
+      supabase.from('visits').select('id, reason, visit_date, pets(name)').ilike('reason', pattern).is('deleted_at', null).limit(5),
+    ]).then(([pets, owners, visits]) => {
+      if (!active) return;
+      const results: Array<{ label: string; detail: string; to: string }> = [];
+      (pets.data ?? []).forEach((pet) => results.push({ label: pet.name, detail: `${pet.species} · Pet`, to: `/pets/${pet.id}` }));
+      (owners.data ?? []).forEach((owner) => results.push({ label: owner.full_name, detail: 'Owner', to: '/administration' }));
+      (visits.data ?? []).forEach((visit) => results.push({ label: visit.reason, detail: `${visit.pets?.[0]?.name ?? 'Pet'} · Medical record`, to: '/medical-records' }));
+      setSearchResults(results);
+    });
+    return () => { active = false; };
+  }, [search]);
 
   const logout = async () => {
     setLogoutError(null);
@@ -71,7 +93,7 @@ export function AppShell() {
       </aside>
       <div className="min-w-0 flex-1 md:ml-60">
         <header className="flex h-16 items-center gap-4 border-b border-border bg-surface-inner px-5">
-          <div className="relative max-w-md flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={15} /><input className="field h-9 min-h-0 pl-9" placeholder="Search pets, owners, or records..." aria-label="Search" /></div>
+          <div className="relative max-w-md flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={15} /><input className="field h-9 min-h-0 pl-9" placeholder="Search pets, owners, or records..." aria-label="Search pets, owners, or records" value={search} onChange={(event) => { const value = event.target.value; setSearch(value); if (value.trim().length < 2) setSearchResults([]); }} />{search.trim().length >= 2 && <div className="absolute left-0 right-0 top-11 z-20 overflow-hidden rounded-xl border border-border bg-surface-inner shadow-sm">{searchResults.length === 0 ? <p className="p-3 text-xs text-text-muted">No matching records.</p> : searchResults.map((result) => <Link key={`${result.to}-${result.label}`} to={result.to} onClick={() => setSearch('')} className="block border-b border-border px-3 py-2 last:border-0 hover:bg-status-rose"><p className="text-sm font-medium">{result.label}</p><p className="text-xs text-text-muted">{result.detail}</p></Link>)}</div>}</div>
           <button type="button" aria-label="View vaccination reminders" onClick={() => navigate('/vaccinations')} className="text-text-muted hover:text-primary"><Bell size={17} /></button>
           <div className="hidden items-center gap-2 border-l border-border pl-4 text-xs sm:flex">{clinic.name}<ChevronDown size={13} /></div>
         </header>

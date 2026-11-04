@@ -7,6 +7,12 @@ export type Profile = {
   phone: string | null;
 };
 
+export type OwnerAccount = {
+  id: string;
+  full_name: string;
+  profile_id: string | null;
+};
+
 export type Pet = {
   id: string;
   owner_id: string;
