@@ -1,0 +1,46 @@
+{
+  "name": "pawrecord",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "vite --config Frontend/vite.config.ts",
+    "build": "tsc -b Frontend/tsconfig.json && vite build --config Frontend/vite.config.ts",
+    "preview": "vite preview --config Frontend/vite.config.ts",
+    "lint": "eslint Frontend Backend/scripts --max-warnings 0",
+    "test:db": "node Backend/scripts/test-database.mjs",
+    "supabase": "supabase --workdir Backend"
+  },
+  "overrides": {
+    "minimatch": "11.0.4"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.80.0",
+    "lucide-react": "0.552.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-router-dom": "7.18.5"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "@eslint/js": "9.39.0",
+    "@types/node": "24.10.0",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "@vitejs/plugin-react": "5.1.0",
+    "autoprefixer": "10.4.22",
+    "eslint": "9.39.0",
+    "eslint-plugin-react-hooks": "7.0.1",
+    "eslint-plugin-react-refresh": "0.4.24",
+    "globals": "16.5.0",
+    "postcss": "8.5.32",
+    "supabase": "2.122.1",
+    "tailwindcss": "3.4.18",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1",
+    "vite": "7.3.7"
+  }
+}

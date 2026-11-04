@@ -1,0 +1,82 @@
+import { Bell, CalendarDays, ChevronDown, Grid2X2, LogOut, PawPrint, Search, Settings, ShieldCheck, Stethoscope, Syringe, Users } from 'lucide-react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../auth/AuthProvider';
+import { clinic } from '../../lib/clinic';
+import { Avatar } from '../ui/Avatar';
+
+const navItems = [
+  { to: '/', label: 'Overview', icon: Grid2X2 },
+  { to: '/pets', label: 'Pets', icon: PawPrint },
+  { to: '/appointments', label: 'Appointments', icon: CalendarDays },
+  { to: '/medical-records', label: 'Medical records', icon: Stethoscope },
+  { to: '/vaccinations', label: 'Vaccinations', icon: Syringe },
+  { to: '/reports', label: 'Reports', icon: ShieldCheck },
+  { to: '/owner-portal', label: 'Owner portal', icon: Users },
+  { to: '/administration', label: 'Administration', icon: Settings },
+];
+
+export function AppShell() {
+  const { profile, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+  const [dueCount, setDueCount] = useState<number | null>(supabase ? null : 0);
+  const initials = profile?.full_name ?? 'Clinic manager';
+  const visibleNavItems = navItems.filter(({ label }) => profile?.role === 'owner'
+    ? ['Overview', 'Owner portal', 'Appointments', 'Medical records', 'Vaccinations'].includes(label)
+    : label !== 'Owner portal' && (profile?.role === 'staff' || profile?.role === 'vet' || label !== 'Administration'));
+  useEffect(() => {
+    if (!supabase) return;
+    void supabase.from('vaccines_due').select('vaccination_id', { count: 'exact', head: true }).then(({ count }) => {
+      setDueCount(count ?? 0);
+    });
+  }, []);
+
+  const logout = async () => {
+    setLogoutError(null);
+    const result = await signOut();
+    if (result.error) {
+      setLogoutError(result.error);
+      return;
+    }
+    setMenuOpen(false);
+    navigate('/sign-in', { replace: true });
+  };
+
+  return (
+    <div className="min-h-screen bg-bg-page md:flex">
+      <aside className="flex w-full shrink-0 flex-col bg-bg-sidebar p-4 md:fixed md:inset-y-0 md:w-60 md:p-5">
+        <div className="flex items-center gap-3 px-2 py-2">
+          <span className="rounded-xl bg-primary p-2 text-white"><PawPrint size={18} /></span>
+          <span className="font-heading text-lg font-semibold">PawRecord</span>
+        </div>
+        <nav className="mt-8 flex gap-1 overflow-x-auto md:block md:space-y-1">
+          {visibleNavItems.map(({ to, label, icon: Icon }) => (
+            <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => `flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors ${isActive ? 'bg-surface-inner font-medium text-primary' : 'text-text-muted hover:bg-status-rose hover:text-primary'}`}>
+              <Icon size={16} /><span>{label}</span>{label === 'Vaccinations' && dueCount !== null && dueCount > 0 && <span className="ml-auto animate-bounce rounded-full bg-primary px-1.5 text-[10px] text-white" aria-label={`${dueCount} vaccinations due`}>{dueCount}</span>}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="mt-auto">
+          <div className="relative mt-4 flex items-center gap-2 border-t border-border pt-4">
+            <Avatar name={initials} className="h-8 w-8 text-xs" />
+            <div className="min-w-0"><p className="truncate text-xs font-medium">{initials}</p><p className="text-[10px] text-text-muted">{profile?.role ?? 'Clinic manager'}</p></div>
+            <button type="button" aria-label="Account menu" onClick={() => setMenuOpen(!menuOpen)} className="ml-auto text-text-muted"><ChevronDown size={14} /></button>
+            {menuOpen && <button type="button" onClick={() => void logout()} className="absolute bottom-10 right-0 z-10 flex items-center gap-2 rounded-xl border border-border bg-surface-inner px-3 py-2 text-xs text-text-primary shadow-sm"><LogOut size={14} /> Log out</button>}
+          </div>
+          {logoutError && <p role="alert" className="mt-2 text-xs text-primary-hover">{logoutError}</p>}
+        </div>
+      </aside>
+      <div className="min-w-0 flex-1 md:ml-60">
+        <header className="flex h-16 items-center gap-4 border-b border-border bg-surface-inner px-5">
+          <div className="relative max-w-md flex-1"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={15} /><input className="field h-9 min-h-0 pl-9" placeholder="Search pets, owners, or records..." aria-label="Search" /></div>
+          <button type="button" aria-label="View vaccination reminders" onClick={() => navigate('/vaccinations')} className="text-text-muted hover:text-primary"><Bell size={17} /></button>
+          <div className="hidden items-center gap-2 border-l border-border pl-4 text-xs sm:flex">{clinic.name}<ChevronDown size={13} /></div>
+        </header>
+        <main className="p-5 sm:p-8"><Outlet /></main>
+      </div>
+    </div>
+  );
+}
