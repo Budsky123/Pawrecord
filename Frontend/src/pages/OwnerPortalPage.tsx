@@ -1,5 +1,5 @@
-import { CalendarPlus, ClipboardList, PawPrint, Syringe } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { CalendarPlus, ClipboardList, ImagePlus, PawPrint, Syringe } from 'lucide-react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar } from '../components/ui/Avatar';
 import { StatusChip } from '../components/ui/StatusChip';
@@ -13,6 +13,42 @@ export function OwnerPortalPage() {
   const [due, setDue] = useState<VaccineDue[]>([]);
   const [state, setState] = useState<'loading' | 'ready' | 'error'>(supabase ? 'loading' : 'ready');
   const [error, setError] = useState('');
+  const [uploadingPetId, setUploadingPetId] = useState<string | null>(null);
+  const [uploadMessage, setUploadMessage] = useState('');
+  const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  const uploadPetPhoto = async (pet: Pet, event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!supabase || !file) return;
+    if (!file.type.startsWith('image/')) {
+      setUploadMessage('Please choose an image file.');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadMessage('Please choose an image smaller than 5 MB.');
+      return;
+    }
+    setUploadingPetId(pet.id);
+    setUploadMessage('');
+    const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const path = `${pet.owner_id}/${pet.id}.${extension}`;
+    const upload = await supabase.storage.from('pet-photos').upload(path, file, { upsert: true, contentType: file.type });
+    if (upload.error) {
+      setUploadMessage(upload.error.message);
+      setUploadingPetId(null);
+      return;
+    }
+    const { data } = supabase.storage.from('pet-photos').getPublicUrl(path);
+    const photoUrl = `${data.publicUrl}?v=${Date.now()}`;
+    const update = await supabase.from('pets').update({ photo_url: photoUrl }).eq('id', pet.id);
+    if (update.error) setUploadMessage(update.error.message);
+    else {
+      setPets((current) => current.map((item) => item.id === pet.id ? { ...item, photo_url: photoUrl } : item));
+      setUploadMessage(`${pet.name}'s profile picture was updated.`);
+    }
+    setUploadingPetId(null);
+  };
 
   useEffect(() => {
     if (!supabase) return;
@@ -50,11 +86,12 @@ export function OwnerPortalPage() {
         <article className="panel p-5"><p className="text-xs text-text-muted">Care items due</p><p className="mt-2 font-heading text-3xl">{due.length}</p><p className="mt-1 text-xs text-text-muted">Vaccinations needing attention</p></article>
       </section>
       <section className="panel flex flex-wrap items-center gap-5 p-6">
-        <Avatar name={primaryPet.name} src={primaryPet.photo_url} className="h-24 w-24 text-2xl" />
-        <div className="min-w-0 flex-1"><p className="text-sm text-text-muted">{primaryPet.species} · {primaryPet.breed ?? 'Mixed breed'}</p><h2 className="font-heading text-2xl">{primaryPet.name}</h2><p className="mt-1 text-xs text-text-muted">{primaryPet.birth_date ? `Born ${primaryPet.birth_date}` : 'Birth date not recorded'}</p><StatusChip label={primaryPet.health_status.replace('_', ' ')} tone="neutral" /></div>
+        <div className="relative"><Avatar name={primaryPet.name} src={primaryPet.photo_url} className="h-24 w-24 text-2xl" /><button type="button" aria-label={`Upload a profile picture for ${primaryPet.name}`} onClick={() => fileInputs.current[primaryPet.id]?.click()} className="absolute -bottom-1 -right-1 rounded-full bg-primary p-2 text-white shadow-primary hover:bg-primary-hover"><ImagePlus size={14} /></button><input ref={(element) => { fileInputs.current[primaryPet.id] = element; }} type="file" accept="image/*" className="hidden" onChange={(event) => void uploadPetPhoto(primaryPet, event)} /></div>
+        <div className="min-w-0 flex-1"><p className="text-sm text-text-muted">{primaryPet.species} · {primaryPet.breed ?? 'Mixed breed'}</p><h2 className="font-heading text-2xl">{primaryPet.name}</h2><p className="mt-1 text-xs text-text-muted">{primaryPet.birth_date ? `Born ${primaryPet.birth_date}` : 'Birth date not recorded'}</p><StatusChip label={primaryPet.health_status.replace('_', ' ')} tone="neutral" /><p className="mt-2 text-xs text-text-muted">Click the camera button to update the photo.</p></div>
         <Link to="/appointments?book=1" className="button-primary"><CalendarPlus size={16} /> Book a visit</Link>
       </section>
-      {pets.length > 1 && <section><div className="mb-3 flex items-center justify-between"><h2 className="font-heading text-lg">My pets</h2><Link className="text-xs text-primary" to="/medical-records">View care records →</Link></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{pets.map((pet) => <article key={pet.id} className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4"><Avatar name={pet.name} src={pet.photo_url} className="h-12 w-12" /><div><p className="text-sm font-medium">{pet.name}</p><p className="text-xs text-text-muted">{pet.species} · {pet.breed ?? 'Mixed breed'}</p><p className="mt-1 text-xs text-text-muted">{pet.health_status.replace('_', ' ')}</p></div></article>)}</div></section>}
+      {uploadMessage && <p role="status" className="rounded-xl border border-border bg-surface-inner p-3 text-sm text-primary-hover">{uploadMessage}</p>}
+      {pets.length > 1 && <section><div className="mb-3 flex items-center justify-between"><h2 className="font-heading text-lg">My pets</h2><Link className="text-xs text-primary" to="/medical-records">View care records →</Link></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{pets.map((pet) => <article key={pet.id} className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4"><div className="relative"><Avatar name={pet.name} src={pet.photo_url} className="h-12 w-12" /><button type="button" aria-label={`Upload a profile picture for ${pet.name}`} onClick={() => fileInputs.current[pet.id]?.click()} className="absolute -bottom-1 -right-1 rounded-full bg-primary p-1.5 text-white hover:bg-primary-hover"><ImagePlus size={11} /></button><input ref={(element) => { fileInputs.current[pet.id] = element; }} type="file" accept="image/*" className="hidden" onChange={(event) => void uploadPetPhoto(pet, event)} /></div><div><p className="text-sm font-medium">{pet.name}</p><p className="text-xs text-text-muted">{pet.species} · {pet.breed ?? 'Mixed breed'}</p><p className="mt-1 text-xs text-text-muted">{uploadingPetId === pet.id ? 'Uploading…' : pet.health_status.replace('_', ' ')}</p></div></article>)}</div></section>}
       <section className="grid gap-5 lg:grid-cols-2">
         <div className="panel p-5"><div className="flex items-center justify-between"><h2 className="flex items-center gap-2 font-heading text-lg"><CalendarPlus size={17} className="text-primary" /> Next appointment</h2><Link className="text-xs text-primary" to="/appointments">View all →</Link></div>{nextAppointment ? <div className="mt-4 rounded-xl bg-surface-inner p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-medium">{nextAppointment.reason}</p><p className="mt-1 text-xs text-text-muted">{nextAppointment.pets.name} · {new Date(nextAppointment.starts_at).toLocaleString()}</p><p className="mt-1 text-xs text-text-muted">Vet: {nextAppointment.profiles?.full_name ?? 'Clinic team'}</p></div><StatusChip label={nextAppointment.status} /></div></div> : <p className="mt-4 rounded-xl bg-surface-inner p-4 text-sm text-text-muted">No upcoming appointments. Book your pet's next visit when ready.</p>}</div>
         <div className="panel p-5"><div className="flex items-center justify-between"><h2 className="flex items-center gap-2 font-heading text-lg"><Syringe size={17} className="text-primary" /> Preventive care</h2><Link className="text-xs text-primary" to="/vaccinations">View all →</Link></div>{due.length === 0 ? <p className="mt-4 rounded-xl bg-surface-inner p-4 text-sm text-text-muted">All vaccination care is current.</p> : <div className="mt-4 space-y-3">{due.slice(0, 4).map((item) => <div key={item.vaccination_id} className="flex items-center justify-between rounded-xl bg-surface-inner p-3"><div><p className="text-sm font-medium">{item.vaccine_name}</p><p className="text-xs text-text-muted">{item.pet_name} · Due {item.next_due_on}</p></div><StatusChip label={item.status === 'overdue' ? 'Overdue' : `${item.days_until_due} days`} tone="rose" /></div>)}</div>}</div>

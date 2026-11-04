@@ -46,9 +46,11 @@ begin
   update public.profiles set role = 'staff' where id = '10000000-0000-4000-8000-000000000004';
   get diagnostics changed = row_count;
   if changed <> 0 then raise exception 'FAIL: owner escalated their role'; end if;
-  update public.pets set name = 'Changed' where id = '30000000-0000-4000-8000-000000000001';
-  get diagnostics changed = row_count;
-  if changed <> 0 then raise exception 'FAIL: owner changed a pet'; end if;
+  begin
+    update public.pets set name = 'Changed' where id = '30000000-0000-4000-8000-000000000001';
+    raise exception 'FAIL: owner changed a pet';
+  exception when insufficient_privilege then null;
+  end;
   update public.visits set diagnosis = 'Changed' where pet_id = '30000000-0000-4000-8000-000000000001';
   get diagnostics changed = row_count;
   if changed <> 0 then raise exception 'FAIL: owner changed a medical record'; end if;
