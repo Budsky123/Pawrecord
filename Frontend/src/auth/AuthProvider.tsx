@@ -1,3 +1,8 @@
+﻿// Function map (line numbers include this header):
+// 1. AuthProvider - line 22: Provides authentication state and actions.
+// 2. loadProfile - line 33: Renders or handles this feature.
+// 3. useAuth - line 80: Reads the authentication context.
+//
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
@@ -9,6 +14,8 @@ type AuthContextValue = {
   loading: boolean;
   configurationError: string | null;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
+  resetPassword: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<{ error: string | null }>;
 };
 
@@ -58,6 +65,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn: async (email, password) => {
       if (!supabase) return { error: configurationError ?? 'Supabase is not configured.' };
       const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error: error?.message ?? null };
+    },
+    signUp: async (email, password, fullName) => {
+      if (!supabase) return { error: configurationError ?? 'Supabase is not configured.' };
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
+      });
+      return { error: error?.message ?? null };
+    },
+    resetPassword: async (email) => {
+      if (!supabase) return { error: configurationError ?? 'Supabase is not configured.' };
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/sign-in` });
       return { error: error?.message ?? null };
     },
     signOut: async () => {
