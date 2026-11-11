@@ -3,29 +3,65 @@
 @tailwind utilities;
 
 @layer base {
-  :root { color-scheme: light; }
-  body { @apply m-0 bg-bg-page font-sans text-text-primary antialiased; }
-  h1, h2, h3 { @apply font-heading; }
-  button, input, select, textarea { font: inherit; }
-  :focus-visible { @apply outline outline-2 outline-offset-4 outline-primary-hover; }
-  ::selection { @apply bg-surface text-text-primary; }
+  :root {
+    color-scheme: light;
+  }
+  body {
+    @apply m-0 bg-bg-page font-sans text-text-primary antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
+  }
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+  :focus-visible {
+    @apply outline outline-2 outline-offset-4 outline-primary-hover;
+  }
+  ::selection {
+    @apply bg-surface text-text-primary;
+  }
 }
 
 @layer components {
-  .panel { @apply rounded-2xl border border-border bg-surface; }
+  .panel {
+    @apply rounded-2xl border border-border bg-surface;
+  }
   .button-primary {
     @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-white shadow-primary transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50;
   }
-  .field { @apply min-h-11 w-full rounded-xl border border-border bg-surface-inner px-3 text-sm placeholder:text-text-muted; }
-  .page-title { @apply font-heading text-3xl font-normal tracking-tight sm:text-4xl; }
+  .field {
+    @apply min-h-11 w-full rounded-xl border border-border bg-surface-inner px-3 text-sm placeholder:text-text-muted;
+  }
+  .page-title {
+    @apply font-heading text-3xl font-normal tracking-tight sm:text-4xl;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition: none !important; animation: none !important; }
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 @media print {
-  [data-no-print] { display: none !important; }
-  body { background: white; color: #4A2C32; }
-  .panel { break-inside: avoid; box-shadow: none; }
+  [data-no-print] {
+    display: none !important;
+  }
+  body {
+    background: white;
+    color: #4a2c32;
+  }
+  .panel {
+    break-inside: avoid;
+    box-shadow: none;
+  }
 }

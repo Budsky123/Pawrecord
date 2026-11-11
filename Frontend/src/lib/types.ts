@@ -1,4 +1,4 @@
-export type AppRole = 'vet' | 'staff' | 'owner';
+export type AppRole = "vet" | "staff" | "owner";
 
 export type Profile = {
   id: string;
@@ -20,9 +20,9 @@ export type Pet = {
   species: string;
   breed: string | null;
   birth_date: string | null;
-  sex: 'female' | 'male' | 'unknown';
+  sex: "female" | "male" | "unknown";
   photo_url: string | null;
-  health_status: 'healthy' | 'follow_up' | 'medication';
+  health_status: "healthy" | "follow_up" | "medication";
   owners?: { full_name: string; email: string };
 };
 
@@ -33,8 +33,14 @@ export type Appointment = {
   starts_at: string;
   ends_at: string;
   reason: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no_show' | 'rescheduled';
-  pets: Pick<Pet, 'name' | 'photo_url'> & { owners?: { full_name: string } };
+  status:
+    | "pending"
+    | "confirmed"
+    | "completed"
+    | "cancelled"
+    | "no_show"
+    | "rescheduled";
+  pets: Pick<Pet, "name" | "photo_url"> & { owners?: { full_name: string } };
   profiles?: { full_name: string };
 };
 
@@ -45,7 +51,7 @@ export type VaccineDue = {
   vaccine_name: string;
   next_due_on: string;
   days_until_due: number;
-  status: 'overdue' | 'due_soon';
+  status: "overdue" | "due_soon";
 };
 
 export type Visit = {
@@ -56,7 +62,7 @@ export type Visit = {
   diagnosis: string | null;
   treatment: string | null;
   notes: string | null;
-  pets?: Pick<Pet, 'name' | 'photo_url'>;
+  pets?: Pick<Pet, "name" | "photo_url">;
   profiles?: { full_name: string };
 };
 
@@ -66,6 +72,6 @@ export type Vaccination = {
   vaccine_type_id: string;
   given_on: string;
   next_due_on: string;
-  pets?: Pick<Pet, 'name' | 'photo_url'>;
+  pets?: Pick<Pet, "name" | "photo_url">;
   vaccine_types?: { name: string };
 };
