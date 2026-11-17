@@ -60,6 +60,37 @@ function statusTone(status: Appointment["status"]) {
       : "neutral";
 }
 
+function appointmentErrorMessage(error: { code?: string; message: string }) {
+  if (error.code === "23P01") {
+    return "That vet is already booked for this time. Please choose another slot.";
+  }
+  if (error.code === "42501") {
+    return "This appointment cannot be booked. Please choose a future date and time for one of your pets.";
+  }
+  if (error.code === "23514") {
+    return "The appointment end time must be after the start time.";
+  }
+  if (error.code === "23503") {
+    return "The selected pet or vet is no longer available. Please refresh and try again.";
+  }
+  return "We could not save this appointment. Please check the details and try again.";
+}
+
+function validateAppointmentTimes(date: string, start: string, end: string) {
+  const startsAt = new Date(`${date}T${start}`);
+  const endsAt = new Date(`${date}T${end}`);
+  if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
+    return "Please choose a valid date and time.";
+  }
+  if (endsAt <= startsAt) {
+    return "The appointment end time must be after the start time.";
+  }
+  if (startsAt <= new Date()) {
+    return "The selected appointment date and time have already passed. Please choose a future time.";
+  }
+  return null;
+}
+
 export function AppointmentsPage() {
   const { profile } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -115,7 +146,7 @@ export function AppointmentsPage() {
     const failure =
       appointmentResult.error ?? petResult.error ?? vetResult.error;
     if (failure) {
-      setError(failure.message);
+      setError(appointmentErrorMessage(failure));
       setState("error");
       return;
     }
@@ -155,6 +186,16 @@ export function AppointmentsPage() {
     if (!supabase || !profile) return;
     setSaving(true);
     setError("");
+    const timeError = validateAppointmentTimes(
+      form.date,
+      form.start,
+      form.end,
+    );
+    if (timeError) {
+      setError(timeError);
+      setSaving(false);
+      return;
+    }
     const startsAt = new Date(`${form.date}T${form.start}`).toISOString();
     const endsAt = new Date(`${form.date}T${form.end}`).toISOString();
     const result = await supabase.from("appointments").insert({
@@ -166,11 +207,7 @@ export function AppointmentsPage() {
       status: profile.role === "owner" ? "pending" : "confirmed",
     });
     if (result.error) {
-      setError(
-        result.error.code === "23P01"
-          ? "That vet already has an appointment during this time. Choose another slot."
-          : result.error.message,
-      );
+      setError(appointmentErrorMessage(result.error));
     } else {
       setForm(emptyForm);
       setSelectedDate(form.date);
@@ -187,7 +224,7 @@ export function AppointmentsPage() {
       .from("appointments")
       .update({ status: "cancelled" })
       .eq("id", appointment.id);
-    if (result.error) setError(result.error.message);
+    if (result.error) setError(appointmentErrorMessage(result.error));
     else await load();
   };
   const updateStatus = async (
@@ -201,7 +238,7 @@ export function AppointmentsPage() {
       .from("appointments")
       .update({ status })
       .eq("id", appointment.id);
-    if (result.error) setError(result.error.message);
+    if (result.error) setError(appointmentErrorMessage(result.error));
     else await load();
   };
   const openReschedule = (appointment: Appointment) => {
@@ -221,6 +258,16 @@ export function AppointmentsPage() {
     if (!supabase || !rescheduling) return;
     setSaving(true);
     setError("");
+    const timeError = validateAppointmentTimes(
+      form.date,
+      form.start,
+      form.end,
+    );
+    if (timeError) {
+      setError(timeError);
+      setSaving(false);
+      return;
+    }
     const startsAt = new Date(`${form.date}T${form.start}`).toISOString();
     const endsAt = new Date(`${form.date}T${form.end}`).toISOString();
     const result = await supabase.from("appointments").insert({
@@ -231,18 +278,13 @@ export function AppointmentsPage() {
       reason: form.reason,
       status: "confirmed",
     });
-    if (result.error)
-      setError(
-        result.error.code === "23P01"
-          ? "That vet already has an appointment during this time."
-          : result.error.message,
-      );
+    if (result.error) setError(appointmentErrorMessage(result.error));
     else {
       const oldResult = await supabase
         .from("appointments")
         .update({ status: "rescheduled" })
         .eq("id", rescheduling.id);
-      if (oldResult.error) setError(oldResult.error.message);
+      if (oldResult.error) setError(appointmentErrorMessage(oldResult.error));
       else {
         setRescheduling(null);
         setForm(emptyForm);
@@ -454,7 +496,7 @@ export function AppointmentsPage() {
           {error && (
             <p
               role="alert"
-              className="text-sm text-primary-hover md:col-span-3"
+              className="max-w-2xl text-sm leading-6 text-primary-hover md:col-span-3"
             >
               {error}
             </p>
