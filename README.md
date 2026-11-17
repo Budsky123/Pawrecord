@@ -16,13 +16,13 @@ Requires Node.js **22.12+** and npm. From this directory:
 
 ```powershell
 npm install
-Copy-Item .env.example .env.local
 npm run dev
 ```
 
 Open Vite's printed URL, normally `http://localhost:5173`. The Phase 1 theme
-specimen works without Supabase credentials. For backend work, replace the two
-values in `.env.local` with the public URL and anon key from the local stack.
+specimen works without Supabase credentials. For backend work, create a
+`.env.local` file with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` using
+the public URL and anon key from the local stack.
 No service-role key belongs in any `VITE_` variable.
 
 Dependencies are exactly pinned. **This creation workspace could not resolve

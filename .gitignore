@@ -3,7 +3,6 @@ dist/
 *.tsbuildinfo
 .env
 .env.*
-!.env.example
 .supabase/
 supabase/.temp/
 supabase/.branches/

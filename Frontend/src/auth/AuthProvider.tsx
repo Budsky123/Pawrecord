@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [configurationError, setConfigurationError] = useState<string | null>(
     supabase
       ? null
-      : "Supabase is not configured. Copy .env.example to .env.local and add the project URL and anon key.",
+      : "Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your local environment.",
   );
 
   useEffect(() => {
