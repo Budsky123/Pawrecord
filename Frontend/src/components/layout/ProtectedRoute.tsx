@@ -13,7 +13,7 @@ export function ProtectedRoute() {
   if (loading)
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg-page text-sm text-text-muted">
-        Loading your workspaceâ€¦
+        Loading your workspace…
       </div>
     );
   if (!session)

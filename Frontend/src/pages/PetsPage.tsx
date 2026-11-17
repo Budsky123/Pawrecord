@@ -210,7 +210,7 @@ export function PetsPage() {
           )}
           <div className="flex gap-2 md:col-span-3">
             <button className="button-primary" type="submit" disabled={saving}>
-              {saving ? "Savingâ€¦" : "Save pet"}
+              {saving ? "Saving…" : "Save pet"}
             </button>
             <button
               className="rounded-xl border border-border px-4 text-sm"
@@ -243,7 +243,7 @@ export function PetsPage() {
         </div>
         {state === "loading" && (
           <p className="p-5 text-sm text-text-muted">
-            Loading patient profilesâ€¦
+            Loading patient profiles…
           </p>
         )}
         {state === "error" && (
@@ -269,7 +269,7 @@ export function PetsPage() {
                   <div>
                     <p className="text-sm font-medium">{pet.name}</p>
                     <p className="text-xs text-text-muted">
-                      {pet.breed ?? pet.species} Â·{" "}
+                      {pet.breed ?? pet.species} ·{" "}
                       {pet.birth_date
                         ? `${new Date().getFullYear() - new Date(pet.birth_date).getFullYear()} years`
                         : "Age unknown"}
@@ -295,7 +295,7 @@ export function PetsPage() {
                         : "medication"
                   }
                 />
-                <p className="text-xs text-text-muted">View patient â†’</p>
+                <p className="text-xs text-text-muted">View patient →</p>
               </Link>
             ))}
           </div>

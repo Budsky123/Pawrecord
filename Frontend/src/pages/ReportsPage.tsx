@@ -69,7 +69,7 @@ export function ReportsPage() {
   }, []);
   if (state === "loading")
     return (
-      <p className="panel p-5 text-sm text-text-muted">Loading reportsâ€¦</p>
+      <p className="panel p-5 text-sm text-text-muted">Loading reports…</p>
     );
   if (state === "error")
     return (

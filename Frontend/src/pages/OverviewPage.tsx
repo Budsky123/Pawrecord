@@ -84,11 +84,11 @@ export function OverviewPage() {
       <header className="flex flex-wrap items-end justify-between gap-5">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-            âœ¦ {date}
+            ✦ {date}
           </p>
           <h1 className="page-title mt-3">Good morning.</h1>
           <p className="mt-3 text-sm leading-6 text-text-muted">
-            Hereâ€™s whatâ€™s happening at the clinic today.
+            Here’s what’s happening at the clinic today.
           </p>
         </div>
         <button
@@ -101,7 +101,7 @@ export function OverviewPage() {
       </header>
       {state === "loading" && (
         <p className="panel p-5 text-sm text-text-muted">
-          Loading todayâ€™s care scheduleâ€¦
+          Loading today’s care schedule…
         </p>
       )}
       {state === "error" && (
@@ -143,13 +143,13 @@ export function OverviewPage() {
           <section className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
             <div className="panel p-5">
               <div className="flex items-center justify-between">
-                <h2 className="font-heading text-lg">Todayâ€™s schedule</h2>
+                <h2 className="font-heading text-lg">Today’s schedule</h2>
                 <button
                   className="text-xs text-primary"
                   type="button"
                   onClick={() => navigate("/appointments")}
                 >
-                  View calendar â†’
+                  View calendar →
                 </button>
               </div>
               {appointments.length === 0 ? (
@@ -179,7 +179,7 @@ export function OverviewPage() {
                           {appointment.pets.name}
                         </p>
                         <p className="truncate text-xs text-text-muted">
-                          {appointment.reason} Â·{" "}
+                          {appointment.reason} ·{" "}
                           {appointment.pets.owners?.full_name ?? "Owner"}
                         </p>
                       </div>
@@ -200,7 +200,7 @@ export function OverviewPage() {
                   type="button"
                   onClick={() => navigate("/vaccinations")}
                 >
-                  Manage â†’
+                  Manage →
                 </button>
               </div>
               {sendMessage && (
@@ -233,7 +233,7 @@ export function OverviewPage() {
                         />
                       </div>
                       <p className="mt-1 text-xs text-text-muted">
-                        {item.pet_name} Â· {item.next_due_on}
+                        {item.pet_name} · {item.next_due_on}
                       </p>
                       <button
                         className="mt-3 w-full rounded-lg border border-border bg-white/40 py-2 text-xs disabled:opacity-50"
@@ -242,7 +242,7 @@ export function OverviewPage() {
                         onClick={() => void sendReminder(item.pet_id)}
                       >
                         {sendingPetId === item.pet_id
-                          ? "Sendingâ€¦"
+                          ? "Sending¦"
                           : "Send reminder"}
                       </button>
                     </div>

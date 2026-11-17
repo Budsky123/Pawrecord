@@ -126,7 +126,7 @@ export function AdministrationPage() {
     );
   if (state === "loading")
     return (
-      <p className="panel p-5 text-sm text-text-muted">Loading peopleâ€¦</p>
+      <p className="panel p-5 text-sm text-text-muted">Loading people…</p>
     );
   if (state === "error")
     return (
@@ -237,7 +237,7 @@ export function AdministrationPage() {
             type="submit"
             disabled={saving}
           >
-            {saving ? "Sending invitationâ€¦" : "Send invitation"}
+            {saving ? "Sending invitation…" : "Send invitation"}
           </button>
         </form>
       )}
@@ -252,7 +252,7 @@ export function AdministrationPage() {
             </p>
             <h2 className="mt-1 font-heading text-lg">Link owner accounts</h2>
             <p className="mt-1 text-xs text-text-muted">
-              Hazel and Paulâ€™s pets will appear in their portal after their
+              Hazel and Paul’s pets will appear in their portal after their
               owner record is linked to their login account.
             </p>
           </div>
@@ -279,7 +279,7 @@ export function AdministrationPage() {
                   <p className="text-sm font-medium">{owner.full_name}</p>
                   <p className="text-xs text-text-muted">
                     {owner.profile_id
-                      ? "Linked â€” pets are visible to this owner"
+                      ? "Linked — pets are visible to this owner"
                       : "Not linked yet"}
                   </p>
                 </div>
@@ -315,7 +315,7 @@ export function AdministrationPage() {
                 .includes(search.trim().toLowerCase()),
             ) && (
               <p className="mt-4 text-sm text-text-muted">
-                No owner matches â€œ{search}â€. Clear the people search to see
+                No owner matches “{search}”. Clear the people search to see
                 all owners.
               </p>
             )}
@@ -352,7 +352,7 @@ export function AdministrationPage() {
           </p>
         ) : filteredProfiles.length === 0 ? (
           <p className="p-8 text-center text-sm text-text-muted">
-            No people match â€œ{search}â€.
+            No people match “{search}”.
           </p>
         ) : (
           <div className="divide-y divide-border">

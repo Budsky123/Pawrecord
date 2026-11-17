@@ -462,7 +462,7 @@ export function AppointmentsPage() {
           <div className="flex gap-2 md:col-span-3">
             <button className="button-primary" type="submit" disabled={saving}>
               {saving
-                ? "Savingâ€¦"
+                ? "Saving…"
                 : rescheduling
                   ? "Confirm reschedule"
                   : "Save appointment"}
@@ -482,7 +482,7 @@ export function AppointmentsPage() {
       )}
       {state === "loading" && (
         <p className="panel p-5 text-sm text-text-muted">
-          Loading appointmentsâ€¦
+          Loading appointments…
         </p>
       )}
       {state === "error" && (
@@ -532,7 +532,7 @@ export function AppointmentsPage() {
                       {appointment.pets.name}
                     </p>
                     <p className="text-xs text-text-muted">
-                      {appointment.reason} Â·{" "}
+                      {appointment.reason} ·{" "}
                       {appointment.pets.owners?.full_name ?? "Owner"}
                     </p>
                   </div>

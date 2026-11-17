@@ -215,7 +215,7 @@ export function MedicalRecordsPage() {
           )}
           <div className="flex gap-2 md:col-span-2">
             <button className="button-primary" type="submit" disabled={saving}>
-              {saving ? "Savingâ€¦" : "Save record"}
+              {saving ? "Saving…" : "Save record"}
             </button>
             <button
               className="rounded-xl border border-border px-4 text-sm"
@@ -229,7 +229,7 @@ export function MedicalRecordsPage() {
       )}
       {state === "loading" && (
         <p className="panel p-5 text-sm text-text-muted">
-          Loading clinical recordsâ€¦
+          Loading clinical records…
         </p>
       )}
       {state === "error" && (
@@ -257,8 +257,8 @@ export function MedicalRecordsPage() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium">{visit.reason}</p>
                     <p className="mt-1 text-xs text-text-muted">
-                      {visit.pets?.name ?? "Patient"} Â·{" "}
-                      {new Date(visit.visit_date).toLocaleDateString()} Â·{" "}
+                      {visit.pets?.name ?? "Patient"} ·{" "}
+                      {new Date(visit.visit_date).toLocaleDateString()} ·{" "}
                       {visit.profiles?.full_name ?? "Veterinary team"}
                     </p>
                     {visit.diagnosis && (

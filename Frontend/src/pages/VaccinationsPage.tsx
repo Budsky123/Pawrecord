@@ -186,7 +186,7 @@ export function VaccinationsPage() {
           )}
           <div className="flex gap-2 md:col-span-3">
             <button className="button-primary" type="submit" disabled={saving}>
-              {saving ? "Savingâ€¦" : "Save record"}
+              {saving ? "Saving…" : "Save record"}
             </button>
             <button
               className="rounded-xl border border-border px-4 text-sm"
@@ -200,7 +200,7 @@ export function VaccinationsPage() {
       )}
       {state === "loading" && (
         <p className="panel p-5 text-sm text-text-muted">
-          Loading vaccination recordsâ€¦
+          Loading vaccination records…
         </p>
       )}
       {state === "error" && (
@@ -237,8 +237,8 @@ export function VaccinationsPage() {
                         {vaccination.vaccine_types?.name ?? "Vaccine"}
                       </p>
                       <p className="text-xs text-text-muted">
-                        {vaccination.pets?.name ?? "Patient"} Â· Given{" "}
-                        {vaccination.given_on} Â· Next due{" "}
+                        {vaccination.pets?.name ?? "Patient"} · Given{" "}
+                        {vaccination.given_on} · Next due{" "}
                         {vaccination.next_due_on}
                       </p>
                     </div>

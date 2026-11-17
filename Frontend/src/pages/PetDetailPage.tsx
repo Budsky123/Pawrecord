@@ -59,7 +59,7 @@ export function PetDetailPage() {
   if (state === "loading")
     return (
       <p className="panel p-5 text-sm text-text-muted">
-        Loading patient detailsâ€¦
+        Loading patient details…
       </p>
     );
   if (state === "error")
@@ -103,7 +103,7 @@ export function PetDetailPage() {
           </p>
           <h1 className="page-title mt-2">{pet.name}</h1>
           <p className="mt-1 text-sm text-text-muted">
-            {pet.breed ?? pet.species} Â· Owner:{" "}
+            {pet.breed ?? pet.species} · Owner:{" "}
             {pet.owners?.full_name ?? "Unassigned"}
           </p>
         </div>
@@ -134,7 +134,7 @@ export function PetDetailPage() {
                 <div key={visit.id} className="border-l-2 border-border pl-4">
                   <p className="text-sm font-medium">{visit.reason}</p>
                   <p className="mt-1 text-xs text-text-muted">
-                    {new Date(visit.visit_date).toLocaleDateString()} Â·{" "}
+                    {new Date(visit.visit_date).toLocaleDateString()} ·{" "}
                     {visit.profiles?.full_name ?? "Veterinary team"}
                   </p>
                   {visit.diagnosis && (

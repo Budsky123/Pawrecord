@@ -4,9 +4,9 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 
 const petFacts = [
-  "Cats spend around 30â€“50% of their day grooming themselves.",
+  "Cats spend around 30–50% of their day grooming themselves.",
   "Dogs can learn more than 100 words and gestures with consistent training.",
-  "A dogâ€™s nose print is unique, much like a human fingerprint.",
+  "A dog’s nose print is unique, much like a human fingerprint.",
   "Rabbits purr softly when they feel safe and content.",
   "Regular dental care helps pets stay healthier for longer.",
 ];

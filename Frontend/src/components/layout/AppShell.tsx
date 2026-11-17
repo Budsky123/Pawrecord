@@ -97,7 +97,7 @@ export function AppShell() {
       (pets.data ?? []).forEach((pet) =>
         results.push({
           label: pet.name,
-          detail: `${pet.species} Â· Pet`,
+          detail: `${pet.species} · Pet`,
           to: `/pets/${pet.id}`,
         }),
       );
@@ -111,7 +111,7 @@ export function AppShell() {
       (visits.data ?? []).forEach((visit) =>
         results.push({
           label: visit.reason,
-          detail: `${visit.pets?.[0]?.name ?? "Pet"} Â· Medical record`,
+          detail: `${visit.pets?.[0]?.name ?? "Pet"} · Medical record`,
           to: "/medical-records",
         }),
       );

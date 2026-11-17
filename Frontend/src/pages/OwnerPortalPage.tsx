@@ -128,7 +128,7 @@ export function OwnerPortalPage() {
   if (state === "loading")
     return (
       <p className="panel p-5 text-sm text-text-muted">
-        Loading your pet portalâ€¦
+        Loading your pet portal…
       </p>
     );
   if (state === "error")
@@ -218,7 +218,7 @@ export function OwnerPortalPage() {
               </div>
               <div className="sm:hidden">
                 <p className="text-sm text-text-muted">
-                  {primaryPet.species} Â· {primaryPet.breed ?? "Mixed breed"}
+                  {primaryPet.species} · {primaryPet.breed ?? "Mixed breed"}
                 </p>
                 <h2 className="font-heading text-2xl leading-tight">
                   {primaryPet.name}
@@ -227,7 +227,7 @@ export function OwnerPortalPage() {
             </div>
             <div className="min-w-0 flex-1">
               <p className="hidden text-sm text-text-muted sm:block">
-                {primaryPet.species} Â· {primaryPet.breed ?? "Mixed breed"}
+                {primaryPet.species} · {primaryPet.breed ?? "Mixed breed"}
               </p>
               <h2 className="hidden font-heading text-2xl sm:block">
                 {primaryPet.name}
@@ -265,7 +265,7 @@ export function OwnerPortalPage() {
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="font-heading text-lg">My pets</h2>
                 <Link className="text-xs text-primary" to="/medical-records">
-                  View care records â†’
+                  View care records →
                 </Link>
               </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -301,11 +301,11 @@ export function OwnerPortalPage() {
                     <div>
                       <p className="text-sm font-medium">{pet.name}</p>
                       <p className="text-xs text-text-muted">
-                        {pet.species} Â· {pet.breed ?? "Mixed breed"}
+                        {pet.species} · {pet.breed ?? "Mixed breed"}
                       </p>
                       <p className="mt-1 text-xs text-text-muted">
                         {uploadingPetId === pet.id
-                          ? "Uploadingâ€¦"
+                          ? "Uploading…"
                           : pet.health_status.replace("_", " ")}
                       </p>
                     </div>
@@ -322,7 +322,7 @@ export function OwnerPortalPage() {
                   appointment
                 </h2>
                 <Link className="text-xs text-primary" to="/appointments">
-                  View all â†’
+                  View all →
                 </Link>
               </div>
               {nextAppointment ? (
@@ -331,7 +331,7 @@ export function OwnerPortalPage() {
                     <div>
                       <p className="font-medium">{nextAppointment.reason}</p>
                       <p className="mt-1 text-xs text-text-muted">
-                        {nextAppointment.pets.name} Â·{" "}
+                        {nextAppointment.pets.name} ·{" "}
                         {new Date(nextAppointment.starts_at).toLocaleString()}
                       </p>
                       <p className="mt-1 text-xs text-text-muted">
@@ -355,7 +355,7 @@ export function OwnerPortalPage() {
                   <Syringe size={17} className="text-primary" /> Preventive care
                 </h2>
                 <Link className="text-xs text-primary" to="/vaccinations">
-                  View all â†’
+                  View all →
                 </Link>
               </div>
               {due.length === 0 ? (
@@ -374,7 +374,7 @@ export function OwnerPortalPage() {
                           {item.vaccine_name}
                         </p>
                         <p className="text-xs text-text-muted">
-                          {item.pet_name} Â· Due {item.next_due_on}
+                          {item.pet_name} · Due {item.next_due_on}
                         </p>
                       </div>
                       <StatusChip
@@ -398,7 +398,7 @@ export function OwnerPortalPage() {
                 history
               </h2>
               <Link className="text-xs text-primary" to="/medical-records">
-                View records â†’
+                View records →
               </Link>
             </div>
             {visits.length === 0 ? (
@@ -416,8 +416,8 @@ export function OwnerPortalPage() {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium">{visit.reason}</p>
                       <p className="mt-1 text-xs text-text-muted">
-                        {visit.pets?.name ?? "Pet"} Â·{" "}
-                        {new Date(visit.visit_date).toLocaleDateString()} Â·{" "}
+                        {visit.pets?.name ?? "Pet"} ·{" "}
+                        {new Date(visit.visit_date).toLocaleDateString()} ·{" "}
                         {visit.profiles?.full_name ?? "Clinic team"}
                       </p>
                       {visit.diagnosis && (

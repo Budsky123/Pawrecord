@@ -59,7 +59,7 @@ export function OwnerOverviewPage() {
   if (state === "loading")
     return (
       <p className="panel p-5 text-sm text-text-muted">
-        Loading your overviewâ€¦
+        Loading your overview…
       </p>
     );
   if (state === "error")
@@ -126,24 +126,24 @@ export function OwnerOverviewPage() {
         <div className="panel p-5">
           <div className="flex items-center justify-between">
             <h2 className="flex items-center gap-2 font-heading text-lg">
-              <CalendarDays size={18} className="text-primary" /> Todayâ€™s
+              <CalendarDays size={18} className="text-primary" /> Today’s
               schedule
             </h2>
             <Link className="text-xs text-primary" to="/appointments">
-              View appointments â†’
+              View appointments →
             </Link>
           </div>
           {todayAppointments.length === 0 ? (
             <div className="mt-5 rounded-xl bg-surface-inner p-5">
               <p className="text-sm font-medium">No appointments today.</p>
               <p className="mt-1 text-xs text-text-muted">
-                You can book your petâ€™s next visit whenever you are ready.
+                You can book your pet’s next visit whenever you are ready.
               </p>
               <Link
                 className="mt-4 inline-block text-xs text-primary"
                 to="/appointments"
               >
-                Book an appointment â†’
+                Book an appointment →
               </Link>
             </div>
           ) : (
@@ -157,7 +157,7 @@ export function OwnerOverviewPage() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium">{appointment.reason}</p>
                     <p className="text-xs text-text-muted">
-                      {appointment.pets.name} Â·{" "}
+                      {appointment.pets.name} ·{" "}
                       {new Date(appointment.starts_at).toLocaleTimeString([], {
                         hour: "numeric",
                         minute: "2-digit",
@@ -197,7 +197,7 @@ export function OwnerOverviewPage() {
                     />
                   </div>
                   <p className="mt-1 text-xs text-text-muted">
-                    {item.pet_name} Â· {item.next_due_on}
+                    {item.pet_name} · {item.next_due_on}
                   </p>
                 </div>
               ))}
@@ -207,7 +207,7 @@ export function OwnerOverviewPage() {
             className="mt-5 inline-block text-xs text-primary"
             to="/vaccinations"
           >
-            View vaccination records â†’
+            View vaccination records →
           </Link>
         </div>
       </section>
@@ -229,7 +229,7 @@ export function OwnerOverviewPage() {
               >
                 <p className="text-sm font-medium">{pet.name}</p>
                 <p className="mt-1 text-xs text-text-muted">
-                  {pet.species} Â· {pet.breed ?? "Mixed breed"}
+                  {pet.species} · {pet.breed ?? "Mixed breed"}
                 </p>
                 <p className="mt-2 text-xs text-text-muted">
                   Health: {pet.health_status.replace("_", " ")}
@@ -241,7 +241,7 @@ export function OwnerOverviewPage() {
       </section>
       {nextAppointment && (
         <p className="text-xs text-text-muted">
-          Next appointment: {nextAppointment.pets.name} Â·{" "}
+          Next appointment: {nextAppointment.pets.name} ·{" "}
           {new Date(nextAppointment.starts_at).toLocaleString()}.
         </p>
       )}
