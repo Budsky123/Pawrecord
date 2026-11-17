@@ -56,6 +56,7 @@ export type VaccineDue = {
 
 export type Visit = {
   id: string;
+  pet_id: string;
   visit_date: string;
   reason: string;
   category: string;

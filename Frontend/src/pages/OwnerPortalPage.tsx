@@ -27,6 +27,7 @@ export function OwnerPortalPage() {
   const [error, setError] = useState("");
   const [uploadingPetId, setUploadingPetId] = useState<string | null>(null);
   const [uploadMessage, setUploadMessage] = useState("");
+  const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
   const fileInputs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const uploadPetPhoto = async (
@@ -93,7 +94,7 @@ export function OwnerPortalPage() {
       supabase
         .from("visits")
         .select(
-          "id, visit_date, reason, category, diagnosis, treatment, notes, pets(name, photo_url), profiles(full_name)",
+          "id, pet_id, visit_date, reason, category, diagnosis, treatment, notes, pets(name, photo_url), profiles(full_name)",
         )
         .is("deleted_at", null)
         .order("visit_date", { ascending: false })
@@ -115,7 +116,13 @@ export function OwnerPortalPage() {
         setState("error");
         return;
       }
-      setPets((petResult.data ?? []) as Pet[]);
+      const loadedPets = (petResult.data ?? []) as Pet[];
+      setPets(loadedPets);
+      setSelectedPetId((current) =>
+        current && loadedPets.some((pet) => pet.id === current)
+          ? current
+          : (loadedPets[0]?.id ?? null),
+      );
       setAppointments(
         (appointmentResult.data ?? []) as unknown as Appointment[],
       );
@@ -137,8 +144,20 @@ export function OwnerPortalPage() {
         {error}
       </p>
     );
-  const primaryPet = pets[0];
-  const nextAppointment = appointments[0];
+  const selectedPet =
+    pets.find((pet) => pet.id === selectedPetId) ?? pets[0];
+  const selectedAppointments = selectedPet
+    ? appointments.filter(
+        (appointment) => appointment.pet_id === selectedPet.id,
+      )
+    : [];
+  const selectedDue = selectedPet
+    ? due.filter((item) => item.pet_id === selectedPet.id)
+    : [];
+  const selectedVisits = selectedPet
+    ? visits.filter((visit) => visit.pet_id === selectedPet.id)
+    : [];
+  const nextAppointment = selectedAppointments[0];
 
   return (
     <div className="space-y-6 sm:space-y-7">
@@ -147,8 +166,8 @@ export function OwnerPortalPage() {
           Owner portal
         </p>
         <h1 className="page-title mt-3">
-          {primaryPet
-            ? `Welcome back. ${primaryPet.name}'s care is here.`
+          {selectedPet
+            ? `Welcome back. ${selectedPet.name}'s care is here.`
             : "Your pet care, all in one place."}
         </h1>
         <p className="mt-2 text-sm text-text-muted">
@@ -176,7 +195,7 @@ export function OwnerPortalPage() {
             <article className="panel p-5">
               <p className="text-xs text-text-muted">Upcoming visits</p>
               <p className="mt-2 font-heading text-3xl">
-                {appointments.length}
+                {selectedAppointments.length}
               </p>
               <p className="mt-1 text-xs text-text-muted">
                 Scheduled appointments
@@ -184,7 +203,7 @@ export function OwnerPortalPage() {
             </article>
             <article className="panel p-5">
               <p className="text-xs text-text-muted">Care items due</p>
-              <p className="mt-2 font-heading text-3xl">{due.length}</p>
+              <p className="mt-2 font-heading text-3xl">{selectedDue.length}</p>
               <p className="mt-1 text-xs text-text-muted">
                 Vaccinations needing attention
               </p>
@@ -194,51 +213,51 @@ export function OwnerPortalPage() {
             <div className="flex items-center gap-4 sm:block">
               <div className="relative">
                 <Avatar
-                  name={primaryPet.name}
-                  src={primaryPet.photo_url}
+                  name={selectedPet.name}
+                  src={selectedPet.photo_url}
                   className="h-24 w-24 text-2xl"
                 />
                 <button
                   type="button"
-                  aria-label={`Upload a profile picture for ${primaryPet.name}`}
-                  onClick={() => fileInputs.current[primaryPet.id]?.click()}
+                  aria-label={`Upload a profile picture for ${selectedPet.name}`}
+                  onClick={() => fileInputs.current[selectedPet.id]?.click()}
                   className="absolute -bottom-1 -right-1 rounded-full bg-primary p-2 text-white shadow-primary hover:bg-primary-hover"
                 >
                   <ImagePlus size={14} />
                 </button>
                 <input
                   ref={(element) => {
-                    fileInputs.current[primaryPet.id] = element;
+                    fileInputs.current[selectedPet.id] = element;
                   }}
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(event) => void uploadPetPhoto(primaryPet, event)}
+                  onChange={(event) => void uploadPetPhoto(selectedPet, event)}
                 />
               </div>
               <div className="sm:hidden">
                 <p className="text-sm text-text-muted">
-                  {primaryPet.species} · {primaryPet.breed ?? "Mixed breed"}
+                  {selectedPet.species} · {selectedPet.breed ?? "Mixed breed"}
                 </p>
                 <h2 className="font-heading text-2xl leading-tight">
-                  {primaryPet.name}
+                  {selectedPet.name}
                 </h2>
               </div>
             </div>
             <div className="min-w-0 flex-1">
               <p className="hidden text-sm text-text-muted sm:block">
-                {primaryPet.species} · {primaryPet.breed ?? "Mixed breed"}
+                {selectedPet.species} · {selectedPet.breed ?? "Mixed breed"}
               </p>
               <h2 className="hidden font-heading text-2xl sm:block">
-                {primaryPet.name}
+                {selectedPet.name}
               </h2>
               <p className="text-xs text-text-muted">
-                {primaryPet.birth_date
-                  ? `Born ${primaryPet.birth_date}`
+                {selectedPet.birth_date
+                  ? `Born ${selectedPet.birth_date}`
                   : "Birth date not recorded"}
               </p>
               <StatusChip
-                label={primaryPet.health_status.replace("_", " ")}
+                label={selectedPet.health_status.replace("_", " ")}
                 tone="neutral"
               />
               <p className="mt-2 text-xs leading-5 text-text-muted">
@@ -272,7 +291,21 @@ export function OwnerPortalPage() {
                 {pets.map((pet) => (
                   <article
                     key={pet.id}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-surface p-4"
+                    className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 text-left transition-colors ${
+                      pet.id === selectedPet.id
+                        ? "border-primary bg-status-rose"
+                        : "border-border bg-surface hover:bg-status-rose"
+                    }`}
+                    onClick={() => setSelectedPetId(pet.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setSelectedPetId(pet.id);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={pet.id === selectedPet.id}
                   >
                     <div className="relative">
                       <Avatar
@@ -358,13 +391,13 @@ export function OwnerPortalPage() {
                   View all →
                 </Link>
               </div>
-              {due.length === 0 ? (
+              {selectedDue.length === 0 ? (
                 <p className="mt-4 rounded-xl bg-surface-inner p-4 text-sm text-text-muted">
                   All vaccination care is current.
                 </p>
               ) : (
                 <div className="mt-4 space-y-3">
-                  {due.slice(0, 4).map((item) => (
+                  {selectedDue.slice(0, 4).map((item) => (
                     <div
                       key={item.vaccination_id}
                       className="flex items-center justify-between rounded-xl bg-surface-inner p-3"
@@ -401,13 +434,13 @@ export function OwnerPortalPage() {
                 View records →
               </Link>
             </div>
-            {visits.length === 0 ? (
+            {selectedVisits.length === 0 ? (
               <p className="mt-4 rounded-xl bg-surface-inner p-4 text-sm text-text-muted">
                 No medical records have been added yet.
               </p>
             ) : (
               <div className="mt-4 divide-y divide-border">
-                {visits.map((visit) => (
+                {selectedVisits.map((visit) => (
                   <article
                     key={visit.id}
                     className="flex items-start gap-3 py-3"
