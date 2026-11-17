@@ -36,6 +36,8 @@ export function MedicalRecordsPage() {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [selectedPetId, setSelectedPetId] = useState("all");
+  const [expandedVisitId, setExpandedVisitId] = useState<string | null>(null);
   const canEdit = profile?.role === "staff" || profile?.role === "vet";
 
   const load = async () => {
@@ -47,7 +49,7 @@ export function MedicalRecordsPage() {
       supabase
         .from("visits")
         .select(
-          "id, visit_date, reason, category, diagnosis, treatment, notes, pets(name, photo_url), profiles(full_name)",
+          "id, pet_id, visit_date, reason, category, diagnosis, treatment, notes, pets(name, photo_url), profiles(full_name)",
         )
         .is("deleted_at", null)
         .order("visit_date", { ascending: false }),
@@ -100,6 +102,10 @@ export function MedicalRecordsPage() {
     }
     setSaving(false);
   };
+  const filteredVisits =
+    selectedPetId === "all"
+      ? visits
+      : visits.filter((visit) => visit.pet_id === selectedPetId);
 
   return (
     <div className="space-y-7">
@@ -240,17 +246,60 @@ export function MedicalRecordsPage() {
       {state === "ready" && (
         <section className="panel overflow-hidden">
           <div className="border-b border-border p-5">
-            <h2 className="font-heading text-lg">Recent clinical records</h2>
-            <p className="text-xs text-text-muted">All clinic locations</p>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="font-heading text-lg">Recent clinical records</h2>
+                <p className="text-xs text-text-muted">
+                  Select a record to view more details.
+                </p>
+              </div>
+              <label className="text-xs text-text-muted">
+                Filter by pet
+                <select
+                  className="field mt-1 min-w-44 py-2 text-sm"
+                  value={selectedPetId}
+                  onChange={(event) => {
+                    setSelectedPetId(event.target.value);
+                    setExpandedVisitId(null);
+                  }}
+                >
+                  <option value="all">All pets</option>
+                  {pets.map((pet) => (
+                    <option key={pet.id} value={pet.id}>
+                      {pet.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
           </div>
-          {visits.length === 0 ? (
+          {filteredVisits.length === 0 ? (
             <p className="p-8 text-center text-sm text-text-muted">
-              No medical records yet.
+              {visits.length === 0
+                ? "No medical records yet."
+                : "No medical records found for this pet."}
             </p>
           ) : (
             <div className="divide-y divide-border">
-              {visits.map((visit) => (
-                <article key={visit.id} className="flex items-start gap-3 p-4">
+              {filteredVisits.map((visit) => {
+                const isExpanded = expandedVisitId === visit.id;
+                return (
+                <article
+                  key={visit.id}
+                  className="flex cursor-pointer items-start gap-3 p-4 transition-colors hover:bg-surface-inner"
+                  onClick={() =>
+                    setExpandedVisitId(isExpanded ? null : visit.id)
+                  }
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      setExpandedVisitId(isExpanded ? null : visit.id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={isExpanded}
+                >
                   <span className="rounded-xl bg-surface-inner p-2.5 text-primary">
                     <FileText size={17} />
                   </span>
@@ -266,12 +315,29 @@ export function MedicalRecordsPage() {
                         {visit.diagnosis}
                       </p>
                     )}
+                    {isExpanded && (
+                      <div className="mt-4 grid gap-3 rounded-xl bg-surface-inner p-3 text-sm sm:grid-cols-2">
+                        <div>
+                          <p className="text-xs text-text-muted">Treatment</p>
+                          <p className="mt-1">
+                            {visit.treatment ?? "No treatment recorded."}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-text-muted">Notes</p>
+                          <p className="mt-1">
+                            {visit.notes ?? "No additional notes."}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <span className="hidden rounded-full bg-surface-inner px-2.5 py-1 text-xs sm:block">
+                  <span className="rounded-full bg-surface-inner px-2.5 py-1 text-xs">
                     {visit.category}
                   </span>
                 </article>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

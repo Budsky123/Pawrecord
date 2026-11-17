@@ -39,6 +39,7 @@ export function VaccinationsPage() {
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [selectedPetId, setSelectedPetId] = useState("all");
   const canEdit = profile?.role === "staff" || profile?.role === "vet";
 
   const load = async () => {
@@ -99,6 +100,12 @@ export function VaccinationsPage() {
     }
     setSaving(false);
   };
+  const filteredVaccinations =
+    selectedPetId === "all"
+      ? vaccinations
+      : vaccinations.filter(
+          (vaccination) => vaccination.pet_id === selectedPetId,
+        );
 
   return (
     <div className="space-y-7">
@@ -211,16 +218,39 @@ export function VaccinationsPage() {
       {state === "ready" && (
         <section className="panel overflow-hidden">
           <div className="border-b border-border p-5">
-            <h2 className="font-heading text-lg">Immunization tracker</h2>
-            <p className="text-xs text-text-muted">All clinic records</p>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="font-heading text-lg">Immunization tracker</h2>
+                <p className="text-xs text-text-muted">
+                  Track vaccine status and due dates.
+                </p>
+              </div>
+              <label className="text-xs text-text-muted">
+                Filter by pet
+                <select
+                  className="field mt-1 min-w-44 py-2 text-sm"
+                  value={selectedPetId}
+                  onChange={(event) => setSelectedPetId(event.target.value)}
+                >
+                  <option value="all">All pets</option>
+                  {pets.map((pet) => (
+                    <option key={pet.id} value={pet.id}>
+                      {pet.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
           </div>
-          {vaccinations.length === 0 ? (
+          {filteredVaccinations.length === 0 ? (
             <p className="p-8 text-center text-sm text-text-muted">
-              No vaccination records yet.
+              {vaccinations.length === 0
+                ? "No vaccination records yet."
+                : "No vaccination records found for this pet."}
             </p>
           ) : (
             <div className="divide-y divide-border">
-              {vaccinations.map((vaccination) => {
+              {filteredVaccinations.map((vaccination) => {
                 const status = vaccineStatus(vaccination.next_due_on);
                 return (
                   <article
