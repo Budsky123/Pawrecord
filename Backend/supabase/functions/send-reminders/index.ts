@@ -91,7 +91,6 @@ async function findSources(
   if (appointmentId) {
     petId = undefined;
   }
-  const dueStart = clinicDate();
   const dueEnd = clinicDate(8);
   const sources: ReminderSource[] = [];
   if (!appointmentId) {
@@ -100,8 +99,7 @@ async function findSources(
       .select(
         "vaccination_id, pet_id, owner_id, pet_name, vaccine_name, next_due_on",
       )
-      .gte("next_due_on", dueStart)
-      .lt("next_due_on", dueEnd);
+      .lte("next_due_on", dueEnd);
     if (petId) vaccinationQuery.eq("pet_id", petId);
     const { data: vaccinations, error: vaccinationError } =
       await vaccinationQuery;

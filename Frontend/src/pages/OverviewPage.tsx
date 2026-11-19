@@ -67,12 +67,26 @@ export function OverviewPage() {
     if (!supabase) return;
     setSendingPetId(petId);
     setSendMessage("");
-    const { error: functionError } = await supabase.functions.invoke(
+    const { data, error: functionError } = await supabase.functions.invoke(
       "send-reminders",
       { body: { petId } },
     );
     setSendingPetId(null);
-    setSendMessage(functionError ? functionError.message : "Reminder sent.");
+    if (functionError) {
+      setSendMessage("Reminder could not be sent. Please try again.");
+    } else if ((data?.sent ?? 0) > 0) {
+      setSendMessage("Reminder sent.");
+    } else if ((data?.failures?.length ?? 0) > 0) {
+      setSendMessage(
+        "Reminder delivery failed. Check the owner's email and Resend settings.",
+      );
+    } else if ((data?.skipped ?? 0) > 0) {
+      setSendMessage("This reminder was already sent.");
+    } else {
+      setSendMessage(
+        "No reminder was sent. Check that the owner has a valid email address.",
+      );
+    }
   };
   const date = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
