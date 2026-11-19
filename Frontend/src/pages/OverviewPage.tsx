@@ -1,6 +1,5 @@
 // Function map (line numbers include this header):
 // 1. OverviewPage - line 14: Renders or handles this feature.
-// 2. sendReminder - line 64: Renders or handles this feature.
 //
 import { CalendarDays, Clock3, PawPrint, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -22,8 +21,6 @@ export function OverviewPage() {
     supabase ? "loading" : "ready",
   );
   const [error, setError] = useState("");
-  const [sendingPetId, setSendingPetId] = useState<string | null>(null);
-  const [sendMessage, setSendMessage] = useState("");
   useEffect(() => {
     if (!supabase) return;
     void Promise.all([
@@ -63,31 +60,6 @@ export function OverviewPage() {
       setState("ready");
     });
   }, []);
-  const sendReminder = async (petId: string) => {
-    if (!supabase) return;
-    setSendingPetId(petId);
-    setSendMessage("");
-    const { data, error: functionError } = await supabase.functions.invoke(
-      "send-reminders",
-      { body: { petId } },
-    );
-    setSendingPetId(null);
-    if (functionError) {
-      setSendMessage("Reminder could not be sent. Please try again.");
-    } else if ((data?.sent ?? 0) > 0) {
-      setSendMessage("Reminder sent.");
-    } else if ((data?.failures?.length ?? 0) > 0) {
-      setSendMessage(
-        "Reminder delivery failed. Check the owner's email and Resend settings.",
-      );
-    } else if ((data?.skipped ?? 0) > 0) {
-      setSendMessage("This reminder was already sent.");
-    } else {
-      setSendMessage(
-        "No reminder was sent. Check that the owner has a valid email address.",
-      );
-    }
-  };
   const date = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
@@ -149,9 +121,9 @@ export function OverviewPage() {
             />
             <StatCard
               icon={Clock3}
-              label="Pending reminders"
-              value={String(due.length)}
-              hint="Ready to send"
+              label="Overdue vaccinations"
+              value={String(due.filter((item) => item.status === "overdue").length)}
+              hint="Needs follow-up"
             />
           </section>
           <section className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
@@ -217,11 +189,6 @@ export function OverviewPage() {
                   Manage →
                 </button>
               </div>
-              {sendMessage && (
-                <p role="status" className="mt-3 text-xs text-primary-hover">
-                  {sendMessage}
-                </p>
-              )}
               {due.length === 0 ? (
                 <p className="mt-8 text-sm text-text-muted">
                   No reminders are due soon.
@@ -249,16 +216,6 @@ export function OverviewPage() {
                       <p className="mt-1 text-xs text-text-muted">
                         {item.pet_name} · {item.next_due_on}
                       </p>
-                      <button
-                        className="mt-3 w-full rounded-lg border border-border bg-white/40 py-2 text-xs disabled:opacity-50"
-                        type="button"
-                        disabled={sendingPetId === item.pet_id}
-                        onClick={() => void sendReminder(item.pet_id)}
-                      >
-                        {sendingPetId === item.pet_id
-                          ? "Sending¦"
-                          : "Send reminder"}
-                      </button>
                     </div>
                   ))}
                 </div>

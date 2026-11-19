@@ -116,10 +116,6 @@ export function AppointmentsPage() {
   const [saving, setSaving] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
-  const [sendingReminderId, setSendingReminderId] = useState<string | null>(
-    null,
-  );
-  const [reminderMessage, setReminderMessage] = useState("");
   const [rescheduling, setRescheduling] = useState<Appointment | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -243,7 +239,6 @@ export function AppointmentsPage() {
   const cancel = async (appointment: Appointment) => {
     if (!supabase) return;
     setError("");
-    setReminderMessage("");
     const result = await supabase
       .from("appointments")
       .update({ status: "cancelled" })
@@ -258,7 +253,6 @@ export function AppointmentsPage() {
     if (!supabase) return;
     setOpenMenu(null);
     setError("");
-    setReminderMessage("");
     const result = await supabase
       .from("appointments")
       .update({ status })
@@ -266,35 +260,8 @@ export function AppointmentsPage() {
     if (result.error) setError(appointmentErrorMessage(result.error));
     else await load();
   };
-  const sendAppointmentReminder = async (appointment: Appointment) => {
-    if (!supabase) return;
-    setOpenMenu(null);
-    setSendingReminderId(appointment.id);
-    setError("");
-    setReminderMessage("");
-    const { data, error } = await supabase.functions.invoke("send-reminders", {
-      body: {
-        appointmentId: appointment.id,
-      },
-    });
-    setSendingReminderId(null);
-    if (error) {
-      setReminderMessage(
-        "The reminder could not be sent. Please try again.",
-      );
-      return;
-    }
-    if (data?.sent > 0) {
-      setReminderMessage("Reminder sent to the pet owner's email.");
-    } else {
-      setReminderMessage(
-        "A reminder was already sent or no email is available.",
-      );
-    }
-  };
   const openReschedule = (appointment: Appointment) => {
     setOpenMenu(null);
-    setReminderMessage("");
     setForm({
       petId: appointment.pet_id,
       vetId: appointment.vet_id,
@@ -571,14 +538,6 @@ export function AppointmentsPage() {
       {state === "loading" && (
         <PageSkeleton />
       )}
-      {reminderMessage && (
-        <p
-          role="status"
-          className="rounded-xl border border-border bg-surface-inner px-4 py-3 text-sm text-primary-hover"
-        >
-          {reminderMessage}
-        </p>
-      )}
       {state === "error" && (
         <p role="alert" className="panel p-5 text-sm text-primary-hover">
           {error}
@@ -673,20 +632,6 @@ export function AppointmentsPage() {
                           className="fixed z-50 w-44 rounded-xl border border-border bg-surface-inner p-1 text-xs shadow-primary"
                           style={menuPosition}
                         >
-                          <button
-                            type="button"
-                            className="block w-full rounded-lg px-3 py-2 text-left hover:bg-status-rose"
-                            disabled={
-                              sendingReminderId === appointment.id
-                            }
-                            onClick={() =>
-                              void sendAppointmentReminder(appointment)
-                            }
-                          >
-                            {sendingReminderId === appointment.id
-                              ? "Sending reminder…"
-                              : "Email upcoming appointment"}
-                          </button>
                           <button
                             type="button"
                             className="block w-full rounded-lg px-3 py-2 text-left hover:bg-status-rose"
