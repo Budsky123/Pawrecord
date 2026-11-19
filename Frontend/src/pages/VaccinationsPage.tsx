@@ -4,7 +4,7 @@
 // 3. load - line 44: Renders or handles this feature.
 // 4. submit - line 83: Renders or handles this feature.
 //
-import { Plus, Syringe } from "lucide-react";
+import { Plus, Syringe, Pencil } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { Avatar } from "../components/ui/Avatar";
@@ -42,6 +42,7 @@ export function VaccinationsPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [selectedPetId, setSelectedPetId] = useState("all");
+  const [confirmation, setConfirmation] = useState<Vaccination | null>(null);
   const canEdit = profile?.role === "staff" || profile?.role === "vet";
 
   const load = async () => {
@@ -102,6 +103,15 @@ export function VaccinationsPage() {
     }
     setSaving(false);
   };
+  const openDoseConfirmation = (vaccination: Vaccination) => {
+    setConfirmation(vaccination);
+    setForm({
+      petId: vaccination.pet_id,
+      vaccineTypeId: vaccination.vaccine_type_id,
+      givenOn: new Date().toISOString().slice(0, 10),
+    });
+    setShowForm(true);
+  };
   const filteredVaccinations =
     selectedPetId === "all"
       ? vaccinations
@@ -125,7 +135,11 @@ export function VaccinationsPage() {
           <button
             className="button-primary"
             type="button"
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => {
+              setConfirmation(null);
+              setForm(emptyForm);
+              setShowForm(!showForm);
+            }}
           >
             <Plus size={16} /> Add record
           </button>
@@ -134,13 +148,16 @@ export function VaccinationsPage() {
       {showForm && (
         <form onSubmit={submit} className="panel grid gap-4 p-5 md:grid-cols-3">
           <h2 className="font-heading text-lg md:col-span-3">
-            Add vaccination record
+            {confirmation
+              ? `Confirm ${confirmation.vaccine_types?.name ?? "vaccination"} dose`
+              : "Add vaccination record"}
           </h2>
           <label className="text-sm">
             Patient
             <select
               className="field mt-2"
               required
+              disabled={Boolean(confirmation)}
               value={form.petId}
               onChange={(event) =>
                 setForm({ ...form, petId: event.target.value })
@@ -159,6 +176,7 @@ export function VaccinationsPage() {
             <select
               className="field mt-2"
               required
+              disabled={Boolean(confirmation)}
               value={form.vaccineTypeId}
               onChange={(event) =>
                 setForm({ ...form, vaccineTypeId: event.target.value })
@@ -200,7 +218,11 @@ export function VaccinationsPage() {
             <button
               className="rounded-xl border border-border px-4 text-sm"
               type="button"
-              onClick={() => setShowForm(false)}
+              onClick={() => {
+                setShowForm(false);
+                setConfirmation(null);
+                setForm(emptyForm);
+              }}
             >
               Cancel
             </button>
@@ -276,10 +298,22 @@ export function VaccinationsPage() {
                       label={status}
                       tone={status === "Current" ? "neutral" : "rose"}
                     />
-                    <Syringe
-                      size={16}
-                      className="hidden text-text-muted sm:block"
-                    />
+                    {canEdit ? (
+                      <button
+                        type="button"
+                        className="rounded-lg p-2 text-text-muted hover:bg-surface-inner hover:text-primary"
+                        aria-label={`Record another ${vaccination.vaccine_types?.name ?? "vaccination"} dose for ${vaccination.pets?.name ?? "this pet"}`}
+                        title="Confirm another dose"
+                        onClick={() => openDoseConfirmation(vaccination)}
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    ) : (
+                      <Syringe
+                        size={16}
+                        className="hidden text-text-muted sm:block"
+                      />
+                    )}
                   </article>
                 );
               })}
