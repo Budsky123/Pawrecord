@@ -41,12 +41,16 @@ Deno.serve(async (request) => {
       email?: string;
       fullName?: string;
       role?: "owner" | "vet" | "staff";
+      redirectTo?: string;
     };
     if (!body.email || !body.fullName || !body.role)
       throw new Error("Email, full name, and role are required.");
     const { data, error } = await admin.auth.admin.inviteUserByEmail(
       body.email,
-      { data: { full_name: body.fullName } },
+      {
+        data: { full_name: body.fullName },
+        redirectTo: body.redirectTo,
+      },
     );
     if (error || !data.user)
       throw error ?? new Error("Unable to create the user invitation.");

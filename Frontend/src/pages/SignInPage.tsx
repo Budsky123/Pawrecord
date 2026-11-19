@@ -1,6 +1,6 @@
 import { Eye, EyeOff, PawPrint } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 
 const petFacts = [
@@ -11,13 +11,18 @@ const petFacts = [
   "Regular dental care helps pets stay healthier for longer.",
 ];
 
-type Mode = "sign-in" | "sign-up" | "reset";
+type Mode = "sign-in" | "sign-up" | "reset" | "set-password";
 
 export function SignInPage() {
-  const { session, signIn, signUp, resetPassword, configurationError } =
+  const { session, signIn, signUp, resetPassword, updatePassword, configurationError } =
     useAuth();
   const location = useLocation();
-  const [mode, setMode] = useState<Mode>("sign-in");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [mode, setMode] = useState<Mode>(
+    searchParams.get("mode") === "set-password"
+      ? "set-password"
+      : "sign-in",
+  );
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +33,7 @@ export function SignInPage() {
     () => petFacts[Math.floor(Math.random() * petFacts.length)],
   );
 
-  if (session)
+  if (session && mode !== "set-password")
     return (
       <Navigate
         to={(location.state as { from?: string } | null)?.from ?? "/"}
@@ -47,7 +52,9 @@ export function SignInPage() {
     setError(null);
     setMessage(null);
     const result =
-      mode === "sign-in"
+      mode === "set-password"
+        ? await updatePassword(password)
+        : mode === "sign-in"
         ? await signIn(email, password)
         : mode === "sign-up"
           ? await signUp(email, password, fullName)
@@ -56,7 +63,12 @@ export function SignInPage() {
       setError(result.error);
       return;
     }
-    if (mode === "sign-up") {
+    if (mode === "set-password") {
+      setMessage("Password updated. You can now continue.");
+      setPassword("");
+      setSearchParams({});
+      setMode("sign-in");
+    } else if (mode === "sign-up") {
       setMessage(
         "Account created. Check your email if confirmation is enabled, then sign in.",
       );
@@ -73,12 +85,16 @@ export function SignInPage() {
   const title =
     mode === "sign-in"
       ? "Welcome back"
+      : mode === "set-password"
+        ? "Set your password"
       : mode === "sign-up"
         ? "Create your account"
         : "Reset your password";
   const submitLabel =
     mode === "sign-in"
       ? "Sign in"
+      : mode === "set-password"
+        ? "Save new password"
       : mode === "sign-up"
         ? "Sign up"
         : "Send reset link";
@@ -101,6 +117,8 @@ export function SignInPage() {
           <h1 className="page-title mt-3 text-3xl sm:text-4xl">
             {mode === "sign-in"
               ? "Care starts here."
+              : mode === "set-password"
+                ? "Create your new password."
               : mode === "sign-up"
                 ? "Join your pet care home."
                 : "We can help you back in."}
@@ -108,6 +126,8 @@ export function SignInPage() {
           <p className="mt-3 text-sm leading-6 text-text-muted">
             {mode === "reset"
               ? "Enter your email and we will send a secure password reset link."
+              : mode === "set-password"
+                ? "Choose a new password to finish setting up your account."
               : "Sign in to your warm, simple pet care workspace."}
           </p>
           {configurationError && (
@@ -136,16 +156,18 @@ export function SignInPage() {
                 />
               </label>
             )}
-            <label className="block text-sm">
-              Email
-              <input
-                className="field mt-2"
-                type="email"
-                required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </label>
+            {mode !== "set-password" && (
+              <label className="block text-sm">
+                Email
+                <input
+                  className="field mt-2"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </label>
+            )}
             {mode !== "reset" && (
               <label className="block text-sm">
                 Password
@@ -190,13 +212,6 @@ export function SignInPage() {
                   onClick={() => changeMode("reset")}
                 >
                   Forgot password?
-                </button>
-                <button
-                  type="button"
-                  className="font-medium text-primary hover:text-primary-hover"
-                  onClick={() => changeMode("sign-up")}
-                >
-                  Create an account
                 </button>
               </>
             )}

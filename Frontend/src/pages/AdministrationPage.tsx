@@ -106,7 +106,10 @@ export function AdministrationPage() {
     setError("");
     setMessage("");
     const result = await supabase.functions.invoke("admin-create-user", {
-      body: newUser,
+      body: {
+        ...newUser,
+        redirectTo: `${window.location.origin}/sign-in?mode=set-password`,
+      },
     });
     if (result.error) setError(result.error.message);
     else {
