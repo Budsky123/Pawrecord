@@ -28,7 +28,7 @@ function vaccineStatus(nextDueOn: string) {
       new Date().setHours(0, 0, 0, 0)) /
       86400000,
   );
-  return days < 0 ? "Overdue" : days <= 14 ? "Due soon" : "Current";
+  return days < 0 ? "Overdue" : days <= 14 ? "Due soon" : "Vaccinated";
 }
 
 export function VaccinationsPage() {
@@ -43,6 +43,7 @@ export function VaccinationsPage() {
   const [saving, setSaving] = useState(false);
   const [selectedPetId, setSelectedPetId] = useState("all");
   const [confirmation, setConfirmation] = useState<Vaccination | null>(null);
+  const [confirmationMessage, setConfirmationMessage] = useState("");
   const canEdit = profile?.role === "staff" || profile?.role === "vet";
 
   const load = async () => {
@@ -89,16 +90,38 @@ export function VaccinationsPage() {
     if (!supabase || !profile) return;
     setSaving(true);
     setError("");
-    const result = await supabase.from("vaccinations").insert({
-      pet_id: form.petId,
-      vaccine_type_id: form.vaccineTypeId,
-      given_on: form.givenOn,
-      administered_by: profile.id,
-    });
+    const result = confirmation
+      ? await supabase
+          .from("vaccinations")
+          .update({ given_on: form.givenOn })
+          .eq("id", confirmation.id)
+          .select("next_due_on")
+          .single()
+      : await supabase.from("vaccinations").insert({
+          pet_id: form.petId,
+          vaccine_type_id: form.vaccineTypeId,
+          given_on: form.givenOn,
+          administered_by: profile.id,
+        });
     if (result.error) setError(friendlyDatabaseError(result.error));
     else {
+      const updatedDue =
+        confirmation &&
+        result.data &&
+        typeof result.data === "object" &&
+        "next_due_on" in result.data
+          ? String(result.data.next_due_on)
+          : null;
+      if (updatedDue) {
+        setConfirmationMessage(
+          `Vaccination confirmed. Next dose is due ${updatedDue}.`,
+        );
+      } else if (confirmation) {
+        setConfirmationMessage("Vaccination confirmed.");
+      }
       setForm(emptyForm);
       setShowForm(false);
+      setConfirmation(null);
       await load();
     }
     setSaving(false);
@@ -213,7 +236,11 @@ export function VaccinationsPage() {
           )}
           <div className="flex gap-2 md:col-span-3">
             <button className="button-primary" type="submit" disabled={saving}>
-              {saving ? "Saving…" : "Save record"}
+              {saving
+                ? "Saving…"
+                : confirmation
+                  ? "Confirm vaccination received"
+                  : "Save record"}
             </button>
             <button
               className="rounded-xl border border-border px-4 text-sm"
@@ -235,6 +262,14 @@ export function VaccinationsPage() {
       {state === "error" && (
         <p role="alert" className="panel p-5 text-sm text-primary-hover">
           {error}
+        </p>
+      )}
+      {confirmationMessage && (
+        <p
+          role="status"
+          className="rounded-xl border border-border bg-surface-inner px-4 py-3 text-sm text-primary-hover"
+        >
+          {confirmationMessage}
         </p>
       )}
       {state === "ready" && (
@@ -296,7 +331,7 @@ export function VaccinationsPage() {
                     </div>
                     <StatusChip
                       label={status}
-                      tone={status === "Current" ? "neutral" : "rose"}
+                      tone={status === "Vaccinated" ? "neutral" : "rose"}
                     />
                     {canEdit ? (
                       <button
