@@ -86,51 +86,65 @@ async function authorize(
 async function findSources(
   admin: ReturnType<typeof createClient>,
   petId?: string,
+  appointmentId?: string,
 ): Promise<ReminderSource[]> {
+  if (appointmentId) {
+    petId = undefined;
+  }
   const dueStart = clinicDate();
   const dueEnd = clinicDate(8);
-  const vaccinationQuery = admin
-    .from("vaccines_due")
-    .select(
-      "vaccination_id, pet_id, owner_id, pet_name, vaccine_name, next_due_on",
-    )
-    .gte("next_due_on", dueStart)
-    .lt("next_due_on", dueEnd);
-  if (petId) vaccinationQuery.eq("pet_id", petId);
-  const { data: vaccinations, error: vaccinationError } =
-    await vaccinationQuery;
-  if (vaccinationError) throw vaccinationError;
+  const sources: ReminderSource[] = [];
+  if (!appointmentId) {
+    const vaccinationQuery = admin
+      .from("vaccines_due")
+      .select(
+        "vaccination_id, pet_id, owner_id, pet_name, vaccine_name, next_due_on",
+      )
+      .gte("next_due_on", dueStart)
+      .lt("next_due_on", dueEnd);
+    if (petId) vaccinationQuery.eq("pet_id", petId);
+    const { data: vaccinations, error: vaccinationError } =
+      await vaccinationQuery;
+    if (vaccinationError) throw vaccinationError;
 
-  const ownerIds = [
-    ...new Set((vaccinations ?? []).map((item) => item.owner_id)),
-  ];
-  const { data: owners, error: ownerError } = ownerIds.length
-    ? await admin.from("owners").select("id, email").in("id", ownerIds)
-    : { data: [], error: null };
-  if (ownerError) throw ownerError;
-  const emails = new Map(
-    (owners ?? []).map((owner) => [owner.id, owner.email]),
-  );
-  const sources: ReminderSource[] = (vaccinations ?? [])
-    .map((item) => ({
-      id: item.vaccination_id,
-      pet_id: item.pet_id,
-      sent_to: emails.get(item.owner_id) ?? "",
-      pet_name: item.pet_name,
-      label: `${item.vaccine_name} vaccination`,
-      due_on: item.next_due_on,
-      type: "vaccination",
-      vaccination_id: item.vaccination_id,
-    }))
-    .filter((item) => item.sent_to);
+    const ownerIds = [
+      ...new Set((vaccinations ?? []).map((item) => item.owner_id)),
+    ];
+    const { data: owners, error: ownerError } = ownerIds.length
+      ? await admin.from("owners").select("id, email").in("id", ownerIds)
+      : { data: [], error: null };
+    if (ownerError) throw ownerError;
+    const emails = new Map(
+      (owners ?? []).map((owner) => [owner.id, owner.email]),
+    );
+    sources.push(
+      ...(vaccinations ?? [])
+        .map((item) => ({
+          id: item.vaccination_id,
+          pet_id: item.pet_id,
+          sent_to: emails.get(item.owner_id) ?? "",
+          pet_name: item.pet_name,
+          label: `${item.vaccine_name} vaccination`,
+          due_on: item.next_due_on,
+          type: "vaccination" as const,
+          vaccination_id: item.vaccination_id,
+        }))
+        .filter((item) => item.sent_to),
+    );
+  }
 
   let appointmentQuery = admin
     .from("appointments")
     .select("id, pet_id, starts_at, reason, pets(name, owners(email))")
-    .gte("starts_at", `${clinicDate(1)}T00:00:00+08:00`)
-    .lt("starts_at", `${clinicDate(2)}T00:00:00+08:00`)
     .in("status", ["pending", "confirmed"]);
   if (petId) appointmentQuery = appointmentQuery.eq("pet_id", petId);
+  if (appointmentId) {
+    appointmentQuery = appointmentQuery.eq("id", appointmentId);
+  } else {
+    appointmentQuery = appointmentQuery
+      .gte("starts_at", `${clinicDate(1)}T00:00:00+08:00`)
+      .lt("starts_at", `${clinicDate(2)}T00:00:00+08:00`);
+  }
   const { data: appointments, error: appointmentError } =
     await appointmentQuery;
   if (appointmentError) throw appointmentError;
@@ -141,13 +155,15 @@ async function findSources(
     const owner =
       pet?.owners && (Array.isArray(pet.owners) ? pet.owners[0] : pet.owners);
     if (owner?.email) {
+      const appointmentDate = new Date(appointment.starts_at)
+        .toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
       sources.push({
         id: appointment.id,
         pet_id: appointment.pet_id,
         sent_to: owner.email,
         pet_name: pet.name,
         label: `Appointment: ${appointment.reason}`,
-        due_on: clinicDate(1),
+        due_on: appointmentDate,
         type: "appointment",
         appointment_id: appointment.id,
       });
@@ -243,6 +259,9 @@ Deno.serve(async (request) => {
     const sources = await findSources(
       admin,
       typeof body.petId === "string" ? body.petId : undefined,
+      typeof body.appointmentId === "string"
+        ? body.appointmentId
+        : undefined,
     );
     const resendApiKey = requiredEnv("RESEND_API_KEY");
     const from = requiredEnv("REMINDER_FROM_EMAIL");

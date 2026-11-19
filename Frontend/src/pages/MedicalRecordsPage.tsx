@@ -7,6 +7,7 @@ import { ClipboardPlus, FileText } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { supabase } from "../lib/supabase";
+import { PageSkeleton } from "../components/ui/Skeleton";
 import type { Pet, Profile, Visit } from "../lib/types";
 
 type VisitForm = {
@@ -234,9 +235,7 @@ export function MedicalRecordsPage() {
         </form>
       )}
       {state === "loading" && (
-        <p className="panel p-5 text-sm text-text-muted">
-          Loading clinical records…
-        </p>
+        <PageSkeleton />
       )}
       {state === "error" && (
         <p role="alert" className="panel p-5 text-sm text-primary-hover">

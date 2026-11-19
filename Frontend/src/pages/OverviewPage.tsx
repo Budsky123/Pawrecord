@@ -8,6 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Avatar } from "../components/ui/Avatar";
 import { StatCard } from "../components/ui/StatCard";
 import { StatusChip } from "../components/ui/StatusChip";
+import { PageSkeleton } from "../components/ui/Skeleton";
 import { supabase } from "../lib/supabase";
 import type { Appointment, Pet, VaccineDue } from "../lib/types";
 
@@ -100,9 +101,7 @@ export function OverviewPage() {
         </button>
       </header>
       {state === "loading" && (
-        <p className="panel p-5 text-sm text-text-muted">
-          Loading today’s care schedule…
-        </p>
+        <PageSkeleton />
       )}
       {state === "error" && (
         <p

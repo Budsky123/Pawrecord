@@ -20,9 +20,11 @@ import {
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { Avatar } from "../components/ui/Avatar";
 import { StatusChip } from "../components/ui/StatusChip";
+import { PageSkeleton } from "../components/ui/Skeleton";
 import { supabase } from "../lib/supabase";
 import type { Appointment, Pet, Profile } from "../lib/types";
 import { useSearchParams } from "react-router-dom";
@@ -108,6 +110,11 @@ export function AppointmentsPage() {
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const [sendingReminderId, setSendingReminderId] = useState<string | null>(
+    null,
+  );
+  const [reminderMessage, setReminderMessage] = useState("");
   const [rescheduling, setRescheduling] = useState<Appointment | null>(null);
   const [calendarMonth, setCalendarMonth] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
@@ -158,6 +165,16 @@ export function AppointmentsPage() {
   useEffect(() => {
     void Promise.resolve().then(load);
   }, [load]);
+  useEffect(() => {
+    if (!openMenu) return undefined;
+    const closeMenu = () => setOpenMenu(null);
+    window.addEventListener("resize", closeMenu);
+    window.addEventListener("scroll", closeMenu, true);
+    return () => {
+      window.removeEventListener("resize", closeMenu);
+      window.removeEventListener("scroll", closeMenu, true);
+    };
+  }, [openMenu]);
 
   const firstDay = new Date(
     calendarMonth.getFullYear(),
@@ -240,6 +257,32 @@ export function AppointmentsPage() {
       .eq("id", appointment.id);
     if (result.error) setError(appointmentErrorMessage(result.error));
     else await load();
+  };
+  const sendAppointmentReminder = async (appointment: Appointment) => {
+    if (!supabase) return;
+    setOpenMenu(null);
+    setSendingReminderId(appointment.id);
+    setError("");
+    setReminderMessage("");
+    const { data, error } = await supabase.functions.invoke("send-reminders", {
+      body: {
+        appointmentId: appointment.id,
+      },
+    });
+    setSendingReminderId(null);
+    if (error) {
+      setReminderMessage(
+        "The reminder could not be sent. Please try again.",
+      );
+      return;
+    }
+    if (data?.sent > 0) {
+      setReminderMessage("Reminder sent to the pet owner's email.");
+    } else {
+      setReminderMessage(
+        "A reminder was already sent or no email is available.",
+      );
+    }
   };
   const openReschedule = (appointment: Appointment) => {
     setOpenMenu(null);
@@ -523,8 +566,14 @@ export function AppointmentsPage() {
         </form>
       )}
       {state === "loading" && (
-        <p className="panel p-5 text-sm text-text-muted">
-          Loading appointments…
+        <PageSkeleton />
+      )}
+      {reminderMessage && (
+        <p
+          role="status"
+          className="rounded-xl border border-border bg-surface-inner px-4 py-3 text-sm text-primary-hover"
+        >
+          {reminderMessage}
         </p>
       )}
       {state === "error" && (
@@ -590,17 +639,51 @@ export function AppointmentsPage() {
                       <button
                         type="button"
                         aria-label={`Appointment actions for ${appointment.pets.name}`}
-                        onClick={() =>
-                          setOpenMenu(
-                            openMenu === appointment.id ? null : appointment.id,
-                          )
-                        }
+                        onClick={(event) => {
+                          if (openMenu === appointment.id) {
+                            setOpenMenu(null);
+                            return;
+                          }
+                          const rect = event.currentTarget.getBoundingClientRect();
+                          const menuWidth = 176;
+                          const menuHeight = 210;
+                          const left = Math.min(
+                            window.innerWidth - menuWidth - 12,
+                            Math.max(12, rect.right - menuWidth),
+                          );
+                          const below = rect.bottom + 6;
+                          const top =
+                            below + menuHeight <= window.innerHeight - 12
+                              ? below
+                              : Math.max(12, rect.top - menuHeight - 6);
+                          setMenuPosition({ top, left });
+                          setOpenMenu(appointment.id);
+                        }}
                         className="rounded-lg p-2 text-text-muted hover:bg-surface-inner hover:text-primary"
                       >
                         <MoreHorizontal size={17} />
                       </button>
                       {openMenu === appointment.id && (
-                        <div className="absolute right-0 z-10 mt-1 w-44 rounded-xl border border-border bg-surface-inner p-1 text-xs shadow-primary">
+                        createPortal(
+                        <div
+                          role="menu"
+                          className="fixed z-50 w-44 rounded-xl border border-border bg-surface-inner p-1 text-xs shadow-primary"
+                          style={menuPosition}
+                        >
+                          <button
+                            type="button"
+                            className="block w-full rounded-lg px-3 py-2 text-left hover:bg-status-rose"
+                            disabled={
+                              sendingReminderId === appointment.id
+                            }
+                            onClick={() =>
+                              void sendAppointmentReminder(appointment)
+                            }
+                          >
+                            {sendingReminderId === appointment.id
+                              ? "Sending reminder…"
+                              : "Email upcoming appointment"}
+                          </button>
                           <button
                             type="button"
                             className="block w-full rounded-lg px-3 py-2 text-left hover:bg-status-rose"
@@ -645,6 +728,7 @@ export function AppointmentsPage() {
                             Cancel appointment
                           </button>
                         </div>
+                        , document.body)
                       )}
                     </div>
                   )}

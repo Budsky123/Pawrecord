@@ -242,9 +242,17 @@ export function PetsPage() {
           </label>
         </div>
         {state === "loading" && (
-          <p className="p-5 text-sm text-text-muted">
-            Loading patient profiles…
-          </p>
+          <div className="divide-y divide-border p-2">
+            {[0, 1, 2, 3].map((row) => (
+              <div key={row} className="flex items-center gap-3 p-3">
+                <div className="h-10 w-10 animate-pulse rounded-full bg-surface-inner" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-1/3 animate-pulse rounded-lg bg-surface-inner" />
+                  <div className="h-3 w-1/2 animate-pulse rounded-lg bg-surface-inner" />
+                </div>
+              </div>
+            ))}
+          </div>
         )}
         {state === "error" && (
           <p role="alert" className="p-5 text-sm text-primary-hover">

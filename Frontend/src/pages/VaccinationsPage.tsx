@@ -10,6 +10,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { Avatar } from "../components/ui/Avatar";
 import { StatusChip } from "../components/ui/StatusChip";
 import { supabase } from "../lib/supabase";
+import { PageSkeleton } from "../components/ui/Skeleton";
 import type { Pet, Vaccination } from "../lib/types";
 
 type VaccineType = { id: string; name: string; interval_days: number };
@@ -206,9 +207,7 @@ export function VaccinationsPage() {
         </form>
       )}
       {state === "loading" && (
-        <p className="panel p-5 text-sm text-text-muted">
-          Loading vaccination records…
-        </p>
+        <PageSkeleton />
       )}
       {state === "error" && (
         <p role="alert" className="panel p-5 text-sm text-primary-hover">
