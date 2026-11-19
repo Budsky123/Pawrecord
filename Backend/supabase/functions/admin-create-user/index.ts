@@ -35,8 +35,8 @@ Deno.serve(async (request) => {
       .eq("id", authData.user.id)
       .maybeSingle();
     if (actorError) throw actorError;
-    if (!actor || !["staff", "vet"].includes(actor.role))
-      throw new Error("Only staff and vets can invite users.");
+    if (!actor || actor.role !== "staff")
+      throw new Error("Only clinic staff can invite users.");
     const body = (await request.json()) as {
       email?: string;
       fullName?: string;
@@ -45,11 +45,14 @@ Deno.serve(async (request) => {
     };
     if (!body.email || !body.fullName || !body.role)
       throw new Error("Email, full name, and role are required.");
+    const appUrl =
+      Deno.env.get("PAWRECORD_APP_URL") ??
+      "https://pawrecord-ochre.vercel.app";
     const { data, error } = await admin.auth.admin.inviteUserByEmail(
       body.email,
       {
         data: { full_name: body.fullName },
-        redirectTo: body.redirectTo,
+        redirectTo: `${appUrl}/sign-in?mode=set-password`,
       },
     );
     if (error || !data.user)

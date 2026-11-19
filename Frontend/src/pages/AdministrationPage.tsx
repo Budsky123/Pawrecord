@@ -11,6 +11,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { Avatar } from "../components/ui/Avatar";
 import { supabase } from "../lib/supabase";
 import type { AppRole, OwnerAccount, Profile } from "../lib/types";
+import { friendlyDatabaseError } from "../lib/errors";
 
 type NewUser = { email: string; fullName: string; role: AppRole };
 
@@ -47,7 +48,7 @@ export function AdministrationPage() {
     ]);
     const failure = profileResult.error ?? ownerResult.error;
     if (failure) {
-      setError(failure.message);
+      setError(friendlyDatabaseError(failure));
       setState("error");
       return;
     }
@@ -64,7 +65,7 @@ export function AdministrationPage() {
       .from("owners")
       .update({ profile_id: profileId || null })
       .eq("id", owner.id);
-    if (result.error) setError(result.error.message);
+    if (result.error) setError(friendlyDatabaseError(result.error));
     else {
       setOwners((current) =>
         current.map((item) =>
@@ -88,7 +89,7 @@ export function AdministrationPage() {
       .from("profiles")
       .update({ role })
       .eq("id", person.id);
-    if (result.error) setError(result.error.message);
+    if (result.error) setError(friendlyDatabaseError(result.error));
     else {
       setProfiles((current) =>
         current.map((item) =>
@@ -111,7 +112,7 @@ export function AdministrationPage() {
         redirectTo: `${window.location.origin}/sign-in?mode=set-password`,
       },
     });
-    if (result.error) setError(result.error.message);
+    if (result.error) setError(friendlyDatabaseError(result.error));
     else {
       setMessage(`Invitation sent to ${newUser.email}.`);
       setNewUser({ email: "", fullName: "", role: "owner" });

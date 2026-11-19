@@ -27,6 +27,7 @@ try {
     "owner_isolation.sql",
     "appointment_constraints.sql",
     "vaccination_rules.sql",
+    "hardened_roles_and_reschedule.sql",
   ];
   for (const file of suites) {
     await db.exec(await sql(`Backend/supabase/tests/${file}`));

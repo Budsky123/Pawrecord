@@ -12,6 +12,7 @@ import { StatusChip } from "../components/ui/StatusChip";
 import { supabase } from "../lib/supabase";
 import { PageSkeleton } from "../components/ui/Skeleton";
 import type { Pet, Vaccination } from "../lib/types";
+import { friendlyDatabaseError } from "../lib/errors";
 
 type VaccineType = { id: string; name: string; interval_days: number };
 type VaccineForm = { petId: string; vaccineTypeId: string; givenOn: string };
@@ -69,7 +70,7 @@ export function VaccinationsPage() {
     const failure =
       vaccinationResult.error ?? petResult.error ?? typeResult.error;
     if (failure) {
-      setError(failure.message);
+      setError(friendlyDatabaseError(failure));
       setState("error");
       return;
     }
@@ -93,7 +94,7 @@ export function VaccinationsPage() {
       given_on: form.givenOn,
       administered_by: profile.id,
     });
-    if (result.error) setError(result.error.message);
+    if (result.error) setError(friendlyDatabaseError(result.error));
     else {
       setForm(emptyForm);
       setShowForm(false);

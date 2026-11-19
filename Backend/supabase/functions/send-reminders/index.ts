@@ -187,7 +187,7 @@ async function deliver(
       : source.appointment_id;
   const { data: existing, error: existingError } = await admin
     .from("reminders")
-    .select("id, status")
+    .select("id, status, retry_count")
     .eq(sourceColumn, sourceId)
     .eq("due_on", source.due_on)
     .maybeSingle();
@@ -208,7 +208,7 @@ async function deliver(
       },
       { onConflict: `${sourceColumn},due_on`, ignoreDuplicates: false },
     )
-    .select("id")
+    .select("id, retry_count")
     .single();
   if (claimError) throw claimError;
 
@@ -230,16 +230,23 @@ async function deliver(
     const detail = await response.text();
     await admin
       .from("reminders")
-      .update({ status: "failed", error_message: detail.slice(0, 500) })
+      .update({
+        status: "failed",
+        error_message: detail.slice(0, 500),
+        retry_count: (reminder.retry_count ?? 0) + 1,
+      })
       .eq("id", reminder.id);
     throw new Error(`Resend rejected the email: ${response.status}`);
   }
+  const provider = await response.json().catch(() => ({ id: null }));
   await admin
     .from("reminders")
     .update({
       status: "sent",
       sent_at: new Date().toISOString(),
       error_message: null,
+      provider_message_id:
+        typeof provider.id === "string" ? provider.id : null,
     })
     .eq("id", reminder.id);
   return "sent";

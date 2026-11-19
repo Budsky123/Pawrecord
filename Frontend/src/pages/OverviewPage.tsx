@@ -11,6 +11,7 @@ import { StatusChip } from "../components/ui/StatusChip";
 import { PageSkeleton } from "../components/ui/Skeleton";
 import { supabase } from "../lib/supabase";
 import type { Appointment, Pet, VaccineDue } from "../lib/types";
+import { friendlyDatabaseError } from "../lib/errors";
 
 export function OverviewPage() {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ export function OverviewPage() {
       const failure =
         appointmentResult.error ?? petResult.error ?? dueResult.error;
       if (failure) {
-        setError(failure.message);
+        setError(friendlyDatabaseError(failure));
         setState("error");
         return;
       }

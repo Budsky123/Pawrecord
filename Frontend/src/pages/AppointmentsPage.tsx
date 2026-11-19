@@ -27,6 +27,11 @@ import { StatusChip } from "../components/ui/StatusChip";
 import { PageSkeleton } from "../components/ui/Skeleton";
 import { supabase } from "../lib/supabase";
 import type { Appointment, Pet, Profile } from "../lib/types";
+import {
+  clinicDateKey,
+  clinicDateTimeToIso,
+  clinicTimeString,
+} from "../lib/clinicTime";
 import { useSearchParams } from "react-router-dom";
 
 type BookingForm = {
@@ -38,7 +43,7 @@ type BookingForm = {
   reason: string;
 };
 const today = new Date();
-const dateInput = today.toISOString().slice(0, 10);
+const dateInput = clinicDateKey(today);
 const emptyForm: BookingForm = {
   petId: "",
   vetId: "",
@@ -49,7 +54,7 @@ const emptyForm: BookingForm = {
 };
 
 function dateKey(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return clinicDateKey(date);
 }
 
 function statusTone(status: Appointment["status"]) {
@@ -79,8 +84,8 @@ function appointmentErrorMessage(error: { code?: string; message: string }) {
 }
 
 function validateAppointmentTimes(date: string, start: string, end: string) {
-  const startsAt = new Date(`${date}T${start}`);
-  const endsAt = new Date(`${date}T${end}`);
+  const startsAt = new Date(clinicDateTimeToIso(date, start));
+  const endsAt = new Date(clinicDateTimeToIso(date, end));
   if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
     return "Please choose a valid date and time.";
   }
@@ -189,7 +194,8 @@ export function AppointmentsPage() {
     return date;
   });
   const visible = appointments.filter(
-    (appointment) => appointment.starts_at.slice(0, 10) === selectedDate,
+    (appointment) =>
+      clinicDateKey(new Date(appointment.starts_at)) === selectedDate,
   );
   const canCreate =
     profile?.role === "staff" ||
@@ -213,8 +219,8 @@ export function AppointmentsPage() {
       setSaving(false);
       return;
     }
-    const startsAt = new Date(`${form.date}T${form.start}`).toISOString();
-    const endsAt = new Date(`${form.date}T${form.end}`).toISOString();
+    const startsAt = clinicDateTimeToIso(form.date, form.start);
+    const endsAt = clinicDateTimeToIso(form.date, form.end);
     const result = await supabase.from("appointments").insert({
       pet_id: form.petId,
       vet_id: form.vetId,
@@ -237,6 +243,7 @@ export function AppointmentsPage() {
   const cancel = async (appointment: Appointment) => {
     if (!supabase) return;
     setError("");
+    setReminderMessage("");
     const result = await supabase
       .from("appointments")
       .update({ status: "cancelled" })
@@ -251,6 +258,7 @@ export function AppointmentsPage() {
     if (!supabase) return;
     setOpenMenu(null);
     setError("");
+    setReminderMessage("");
     const result = await supabase
       .from("appointments")
       .update({ status })
@@ -286,12 +294,13 @@ export function AppointmentsPage() {
   };
   const openReschedule = (appointment: Appointment) => {
     setOpenMenu(null);
+    setReminderMessage("");
     setForm({
       petId: appointment.pet_id,
       vetId: appointment.vet_id,
-      date: appointment.starts_at.slice(0, 10),
-      start: new Date(appointment.starts_at).toTimeString().slice(0, 5),
-      end: new Date(appointment.ends_at).toTimeString().slice(0, 5),
+      date: clinicDateKey(new Date(appointment.starts_at)),
+      start: clinicTimeString(appointment.starts_at),
+      end: clinicTimeString(appointment.ends_at),
       reason: appointment.reason,
     });
     setRescheduling(appointment);
@@ -311,29 +320,22 @@ export function AppointmentsPage() {
       setSaving(false);
       return;
     }
-    const startsAt = new Date(`${form.date}T${form.start}`).toISOString();
-    const endsAt = new Date(`${form.date}T${form.end}`).toISOString();
-    const result = await supabase.from("appointments").insert({
-      pet_id: form.petId,
-      vet_id: form.vetId,
-      starts_at: startsAt,
-      ends_at: endsAt,
-      reason: form.reason,
-      status: "confirmed",
+    const startsAt = clinicDateTimeToIso(form.date, form.start);
+    const endsAt = clinicDateTimeToIso(form.date, form.end);
+    const result = await supabase.rpc("reschedule_appointment", {
+      p_old_appointment_id: rescheduling.id,
+      p_pet_id: form.petId,
+      p_vet_id: form.vetId,
+      p_starts_at: startsAt,
+      p_ends_at: endsAt,
+      p_reason: form.reason,
     });
     if (result.error) setError(appointmentErrorMessage(result.error));
     else {
-      const oldResult = await supabase
-        .from("appointments")
-        .update({ status: "rescheduled" })
-        .eq("id", rescheduling.id);
-      if (oldResult.error) setError(appointmentErrorMessage(oldResult.error));
-      else {
-        setRescheduling(null);
-        setForm(emptyForm);
-        setSelectedDate(form.date);
-        await load();
-      }
+      setRescheduling(null);
+      setForm(emptyForm);
+      setSelectedDate(form.date);
+      await load();
     }
     setSaving(false);
   };
@@ -430,7 +432,8 @@ export function AppointmentsPage() {
           {calendarDays.map((date) => {
             const key = dateKey(date);
             const count = appointments.filter(
-              (appointment) => appointment.starts_at.slice(0, 10) === key,
+              (appointment) =>
+                clinicDateKey(new Date(appointment.starts_at)) === key,
             ).length;
             const inMonth = date.getMonth() === calendarMonth.getMonth();
             return (

@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { StatusChip } from "../components/ui/StatusChip";
 import { supabase } from "../lib/supabase";
 import type { Appointment, Pet, VaccineDue } from "../lib/types";
+import { friendlyDatabaseError } from "../lib/errors";
 
 export function OwnerOverviewPage() {
   const [pets, setPets] = useState<Pet[]>([]);
@@ -43,7 +44,7 @@ export function OwnerOverviewPage() {
       const failure =
         petResult.error ?? appointmentResult.error ?? dueResult.error;
       if (failure) {
-        setError(failure.message);
+        setError(friendlyDatabaseError(failure));
         setState("error");
         return;
       }

@@ -9,6 +9,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { supabase } from "../lib/supabase";
 import { PageSkeleton } from "../components/ui/Skeleton";
 import type { Pet, Profile, Visit } from "../lib/types";
+import { friendlyDatabaseError } from "../lib/errors";
 
 type VisitForm = {
   petId: string;
@@ -68,7 +69,7 @@ export function MedicalRecordsPage() {
     ]);
     const failure = visitResult.error ?? petResult.error ?? vetResult.error;
     if (failure) {
-      setError(failure.message);
+      setError(friendlyDatabaseError(failure));
       setState("error");
       return;
     }
@@ -95,7 +96,7 @@ export function MedicalRecordsPage() {
       treatment: form.treatment || null,
       notes: form.notes || null,
     });
-    if (result.error) setError(result.error.message);
+    if (result.error) setError(friendlyDatabaseError(result.error));
     else {
       setForm(emptyForm);
       setShowForm(false);

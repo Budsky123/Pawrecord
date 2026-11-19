@@ -10,6 +10,7 @@ import { Avatar } from "../components/ui/Avatar";
 import { StatusChip } from "../components/ui/StatusChip";
 import { supabase } from "../lib/supabase";
 import type { Pet } from "../lib/types";
+import { friendlyDatabaseError } from "../lib/errors";
 
 export function PetsPage() {
   const { profile } = useAuth();
@@ -44,7 +45,7 @@ export function PetsPage() {
     ]).then(([petResult, ownerResult]) => {
       const resultError = petResult.error ?? ownerResult.error;
       if (resultError) {
-        setError(resultError.message);
+        setError(friendlyDatabaseError(resultError));
         setState("error");
         return;
       }
@@ -67,7 +68,7 @@ export function PetsPage() {
       sex: form.sex,
       health_status: "healthy",
     });
-    if (result.error) setError(result.error.message);
+    if (result.error) setError(friendlyDatabaseError(result.error));
     else {
       setForm({
         ownerId: "",
@@ -84,7 +85,7 @@ export function PetsPage() {
           "id, owner_id, name, species, breed, birth_date, sex, photo_url, health_status, owners(full_name, email)",
         )
         .order("name");
-      if (refreshed.error) setError(refreshed.error.message);
+      if (refreshed.error) setError(friendlyDatabaseError(refreshed.error));
       else setPets((refreshed.data ?? []) as unknown as Pet[]);
     }
     setSaving(false);

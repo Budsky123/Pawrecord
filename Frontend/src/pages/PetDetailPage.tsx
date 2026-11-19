@@ -8,6 +8,7 @@ import { Avatar } from "../components/ui/Avatar";
 import { StatusChip } from "../components/ui/StatusChip";
 import { supabase } from "../lib/supabase";
 import type { Pet, Visit, VaccineDue } from "../lib/types";
+import { friendlyDatabaseError } from "../lib/errors";
 
 export function PetDetailPage() {
   const { id } = useParams();
@@ -46,7 +47,7 @@ export function PetDetailPage() {
       const failure =
         petResult.error ?? visitsResult.error ?? vaccineResult.error;
       if (failure) {
-        setError(failure.message);
+        setError(friendlyDatabaseError(failure));
         setState("error");
         return;
       }

@@ -15,6 +15,7 @@ import { Avatar } from "../components/ui/Avatar";
 import { StatusChip } from "../components/ui/StatusChip";
 import { supabase } from "../lib/supabase";
 import type { Appointment, Pet, VaccineDue, Visit } from "../lib/types";
+import { friendlyDatabaseError } from "../lib/errors";
 
 export function OwnerPortalPage() {
   const [pets, setPets] = useState<Pet[]>([]);
@@ -53,17 +54,16 @@ export function OwnerPortalPage() {
       .from("pet-photos")
       .upload(path, file, { upsert: true, contentType: file.type });
     if (upload.error) {
-      setUploadMessage(upload.error.message);
+      setUploadMessage(friendlyDatabaseError(upload.error));
       setUploadingPetId(null);
       return;
     }
-    const { data } = supabase.storage.from("pet-photos").getPublicUrl(path);
-    const photoUrl = `${data.publicUrl}?v=${Date.now()}`;
+    const photoUrl = path;
     const update = await supabase
       .from("pets")
       .update({ photo_url: photoUrl })
       .eq("id", pet.id);
-    if (update.error) setUploadMessage(update.error.message);
+    if (update.error) setUploadMessage(friendlyDatabaseError(update.error));
     else {
       setPets((current) =>
         current.map((item) =>
@@ -112,7 +112,7 @@ export function OwnerPortalPage() {
         visitResult.error ??
         dueResult.error;
       if (failure) {
-        setError(failure.message);
+        setError(friendlyDatabaseError(failure));
         setState("error");
         return;
       }

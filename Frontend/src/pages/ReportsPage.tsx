@@ -4,6 +4,7 @@
 import { BarChart3, Printer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { friendlyDatabaseError } from "../lib/errors";
 
 type MonthlyVisit = { label: string; value: number };
 
@@ -32,7 +33,7 @@ export function ReportsPage() {
     ]).then(([visits, appointments, reminders]) => {
       const failure = visits.error ?? appointments.error ?? reminders.error;
       if (failure) {
-        setError(failure.message);
+        setError(friendlyDatabaseError(failure));
         setState("error");
         return;
       }
